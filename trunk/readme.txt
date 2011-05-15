@@ -2,6 +2,8 @@
 Contributors: Thiago Silva Ferreira
 Tags: skitter, jquery slideshow, slider, jquery slider, jquery, image, image slider
 Tested up to: 3.1
+Stable tag: trunk
+Requires at least: 2.9
 
 Slideshow flexible with many options for customizations.
 
