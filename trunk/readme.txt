@@ -27,10 +27,9 @@ To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a
 
 * You can either use the automatic plugin installer or your FTP program to upload it to your wp-content/plugins directory the top-level folder. Don't just upload all the php files and put them in /wp-content/plugins/.
 * Activate the plugin through the 'Plugins' menu in WordPress
-* Visit your WP Nivo Slider Options (Options - WP Nivo Slider)
 * Insert <code>&lt;?php if ( function_exists('show_skitter') )  { show_skitter(); } ?&gt;</code> into your template file.
 * Add a post thumb to a desired post.
-* That's it!!
+* And voila!
 
 == Changelog ==
 
