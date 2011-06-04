@@ -7,7 +7,7 @@ Author URI: http://thiagosf.net
 Contributors: thiagosf
 Requires at least: 2.9
 Tested up to: 3.1
-Stable tag: trunk
+Stable tag: 1.1
 
 Slideshow flexible with many options for customizations.
 
