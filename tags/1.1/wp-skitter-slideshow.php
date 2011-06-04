@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projetct/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 1.0
+Version: 1.1
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -31,7 +31,8 @@ add_action('admin_init', 'wp_skitter_reg_function');
 register_activation_hook( __FILE__, 'wp_skitter_activate');
 
 wp_enqueue_script('skitter', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.skitter.min.js', array('jquery'));
-wp_enqueue_script('jquery-ui-custom', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery-ui.min.js', array('jquery'));
+wp_enqueue_script('jquery.animate-colors', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.animate-colors-min.js', array('jquery'));
+wp_enqueue_script('jquery.easing', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.easing.1.3.js', array('jquery'));
 wp_enqueue_style( 'skitter.styles', WP_PLUGIN_URL . '/wp-skitter-slideshow/css/skitter.styles.css');
 
 function wp_skitter_add_menu() 
@@ -62,6 +63,7 @@ function getSkitterSettings()
 		'wp_skitter_width_label', 
 		'wp_skitter_width', 
 		'wp_skitter_height',
+		'wp_skitter_show_randomly',
 		'wp_skitter_crop'
 	);
 	return $wp_skitter_settings;
@@ -90,9 +92,26 @@ function wp_skitter_activate()
 
 function filterValueSkitter ($option, $value) 
 {
-	$booleans = array('wp_skitter_numbers', 'wp_skitter_navigation', 'wp_skitter_label', 'wp_skitter_thumbs', 'wp_skitter_hideTools', 'wp_skitter_fullscreen', 'wp_skitter_dots');
+	$booleans = array(
+		'wp_skitter_numbers', 
+		'wp_skitter_navigation', 
+		'wp_skitter_label', 
+		'wp_skitter_thumbs', 
+		'wp_skitter_hideTools', 
+		'wp_skitter_fullscreen', 
+		'wp_skitter_dots', 
+		'wp_skitter_show_randomly'
+	);
 	
-	$strings = array('wp_skitter_animation', 'wp_skitter_width', 'wp_skitter_height', 'wp_skitter_easing_default', 'wp_skitter_xml', 'wp_skitter_width_label');
+	$strings = array(
+		'wp_skitter_animation', 
+		'wp_skitter_width', 
+		'wp_skitter_height', 
+		'wp_skitter_easing_default', 
+		'wp_skitter_xml', 
+		'wp_skitter_width_label'
+	);
+	
 	if (in_array($option, $booleans)) {
 		$value = $value == 'true' ? 'true' : 'false';
 	} 
@@ -246,6 +265,7 @@ function wp_skitter_menu_function() {
 						
 						$animations = array(
 							'random', 
+							'randomSmart', 
 							'cube', 
 							'cubeRandom', 
 							'block', 
@@ -314,6 +334,7 @@ function wp_skitter_menu_function() {
 				array('fullscreen', 'Fullscreen mode', "false", "true"),
 				array('xml', 'Loading data from XML file', "false", "xml/slides.xml"),
 				array('dots', 'Navigation with dots', "false", "true"),
+				array('show_randomly', 'Randomly slides', "false", "true"),
 				array('width_label', 'Width label', "null", "300px"),
 			);
 			
