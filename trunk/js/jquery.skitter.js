@@ -6,7 +6,7 @@
  * @version 3.1
  * @date August 04, 2010
  * @copyright (c) 2010 Thiago Silva Ferreira - http://thiagosf.net
- * @license Distributed under the GPL license
+ * @license Dual licensed under the MIT or GPL Version 2 licenses
  * @example http://thiagosf.net/projects/jquery/skitter/
  */
 
@@ -41,6 +41,7 @@
 		is_animating:  			false,
 		is_hover_box_skitter: 	false,
 		random_ia: 				null,
+		show_randomly: 			false,
 		thumbs: 				false,
 		animateNumberOut: 		{backgroundColor:'#333', color:'#fff'},
 		animateNumberOver: 		{backgroundColor:'#fff', color:'#000'},
@@ -268,6 +269,9 @@
 			
 			this.box_skitter.find('ul').hide();
 			
+			if (this.settings.show_randomly)
+			this.settings.images_links.sort(function(a,b) {return Math.random() - 0.5;});
+			
 			this.settings.image_atual 	= this.settings.images_links[0][0];
 			this.settings.link_atual 	= this.settings.images_links[0][1];
 			this.settings.label_atual 	= this.settings.images_links[0][3];
@@ -360,16 +364,15 @@
 			
 			var loading = $('<div class="loading">Loading</div>');
 			this.box_skitter.append(loading);
-			total = this.settings.images_links.length;
-			
+			var total = this.settings.images_links.length;
 			
 			var u = 0;
 			$.each(this.settings.images_links, function(i)
 			{
 				var self_il = this;
-				var image = $('<img src="" class="image_loading" />');
-				image.css({position:'absolute', top:'-9999em'});
-				self.box_skitter.append(image);
+				var loading = $('<span class="image_loading"></span>');
+				loading.css({position:'absolute', top:'-9999em'});
+				self.box_skitter.append(loading);
 				var img = new Image();
 				
 				$(img).load(function () {
@@ -393,7 +396,7 @@
 		{
 			var self = this;
 			
-			this.box_skitter.find('.image a').attr({'href': this.settings.link_atual});
+			this.setLinkAtual();
 			this.box_skitter.find('.image a img').attr({'src': this.settings.image_atual});
 			img_link = this.box_skitter.find('.image a');
 			img_link = this.resizeImage(img_link);
@@ -442,11 +445,12 @@
 				'cubeSpread'
 				
 			];
+			
 			animation_type = (this.settings.animation == '' && this.settings.images_links[this.settings.image_i][2]) ? 
 				this.settings.images_links[this.settings.image_i][2] : (this.settings.animation == '' ? 'default' : this.settings.animation);
 			
-			// Random type
-			if (animation_type == 'random') 
+			// RandomUnique
+			if (animation_type == 'randomSmart') 
 			{
 				if (!this.settings.random_ia) {
 					animations_functions.sort(function() {
@@ -455,6 +459,12 @@
 					this.settings.random_ia = animations_functions;
 				}
 				animation_type = this.settings.random_ia[this.settings.image_i];
+			}
+			// Random
+			else if (animation_type == 'random') 
+			{
+				var random_id = parseInt(Math.random() * animations_functions.length);
+				animation_type = animations_functions[random_id];
 			}
 			
 			switch (animation_type) 
@@ -1608,7 +1618,7 @@
 		showBoxText: function () 
 		{
 			var self = this;
-			if (this.settings.label_atual != undefined && self.settings.label) {
+			if (this.settings.label_atual != undefined && this.settings.label_atual != '' && self.settings.label) {
 				self.box_skitter.find('.label_skitter').slideDown(400);
 			}
 		},
@@ -1695,12 +1705,12 @@
 		}, 
 		
 		/**
-		 * Gera números aleatórios inteiros entre um intervalo
+		 * Gera nÃºmeros aleatÃ³rios inteiros entre um intervalo
 		 * @author Daniel Castro Machado <daniel@cdt.unb.br>
 		 */
 		randomUnique: function (valorIni, valorFim) {
 			var numRandom;
-			do numRandom = Math.random(); while (numRandom == 1); // Evita gerar o número valorFim + 1
+			do numRandom = Math.random(); while (numRandom == 1); // Evita gerar o nÃºmero valorFim + 1
 			return (numRandom * (valorFim - valorIni + 1) + valorIni) | 0;
 		}
 		

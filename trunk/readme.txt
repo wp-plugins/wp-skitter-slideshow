@@ -1,9 +1,13 @@
 === Skitter Slideshow ===
-Contributors: Thiago Silva Ferreira
-Tags: skitter, jquery slideshow, slider, jquery slider, jquery, image, image slider
+Plugin Name: Skitter Slideshow
+Plugin URI: http://wordpress.org/extend/plugins/wp-skitter-slideshow/
+Tags: skitter, jquery slideshow, slider, jquery slider, jquery, gallery, gallery slideshow
+Author: thiagosf
+Author URI: http://thiagosf.net
+Contributors: thiagosf
+Requires at least: 2.9
 Tested up to: 3.1
 Stable tag: trunk
-Requires at least: 2.9
 
 Slideshow flexible with many options for customizations.
 
@@ -17,11 +21,11 @@ To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a
 
 == Screenshots ==
 
-1. Screenshot 1
-2. Screenshot 2
-3. Screenshot 3
-4. Screenshot 4
-5. Screenshot 5
+1. Basic configuration
+2. Adding the plugin in your template
+3. Setting up the post with the picture for the slider and how to use a different URL of the post
+4. Choosing the main image of the post to be displayed
+5. Plugin working
 
 == Installation ==
 
@@ -33,8 +37,16 @@ To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a
 
 == Changelog ==
 
+= version 1.1 =
+
+* Added: News animations: random, randomSmart
+* Added: New option: show_randomly (randomly slides)
+* Added: jquery.easing.1.3 and jquery.animate-colors-min.js to replace jQuery UI
+* Removed: jQuery UI
+
 = version 1.0 =
-Implementation of basic functionality
+
+* Implementation of basic functionality
 
 == CREDIT ==
 
