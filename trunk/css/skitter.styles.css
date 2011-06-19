@@ -1,4 +1,6 @@
-/* Skitter styles */
+/* 
+ Skitter styles
+ ------------------------------*/
 
 .box_skitter {position:relative;width:800px;height:300px;background:#000;}
 .box_skitter ul {display:none;}
@@ -32,8 +34,14 @@
 
 .loading {position:absolute; top:50%; right:50%; z-index:10000; margin:-16px -16px;color:#fff;text-indent:-9999em;overflow:hidden;background:url(../images/ajax-loader.gif) no-repeat left top;width:32px;height:32px;}
 
-/**
- * Example for dimenions:
- */
+/* 
+ Example for dimenions:
+ ------------------------------*/
 .box_skitter_large {width:800px;height:300px;}
 .box_skitter_small {width:200px;height:200px;}
+
+/* 
+ Exaple label style
+ ------------------------------*/
+.label_skitter {z-index:150;position:absolute;bottom:0px;left:0px;background:#000;color:#fff;display:none;border-top:1px solid #000;opacity:0.8;-moz-opacity:0.8;-webkit-opacity:0.8;-o-opacity:0.8;}
+.label_skitter p {padding:10px;margin:0;font:normal 22px arial,tahoma;letter-spacing:-1px;}

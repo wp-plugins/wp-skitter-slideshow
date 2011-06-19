@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projetct/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 1.1
+Version: 1.0
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -27,13 +27,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 add_action('admin_menu', 'wp_skitter_add_menu');
 add_action('admin_init', 'wp_skitter_reg_function');
+add_action('init', 'init_load');
 
 register_activation_hook( __FILE__, 'wp_skitter_activate');
 
-wp_enqueue_script('skitter', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.skitter.min.js', array('jquery'));
-wp_enqueue_script('jquery.animate-colors', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.animate-colors-min.js', array('jquery'));
-wp_enqueue_script('jquery.easing', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.easing.1.3.js', array('jquery'));
-wp_enqueue_style( 'skitter.styles', WP_PLUGIN_URL . '/wp-skitter-slideshow/css/skitter.styles.css');
+function init_load()
+{
+    wp_enqueue_script('skitter', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.skitter.min.js', array('jquery'));
+    wp_enqueue_script('jquery.animate-colors', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.animate-colors-min.js', array('jquery'));
+    wp_enqueue_script('jquery.easing', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.easing.1.3.js', array('jquery'));
+    wp_enqueue_style( 'skitter.styles', WP_PLUGIN_URL . '/wp-skitter-slideshow/css/skitter.styles.css');
+}
 
 function wp_skitter_add_menu() 
 {
@@ -48,18 +52,16 @@ function getSkitterSettings()
 		'wp_skitter_animation', 
 		'wp_skitter_velocity', 
 		'wp_skitter_interval', 
-		'wp_skitter_numbers', 
 		'wp_skitter_navigation', 
 		'wp_skitter_label', 
+		'wp_skitter_type_navigation', 
 		'wp_skitter_easing_default', 
 		'wp_skitter_animateNumberOut', 
 		'wp_skitter_animateNumberOver', 
 		'wp_skitter_animateNumberActive', 
-		'wp_skitter_thumbs', 
 		'wp_skitter_hideTools', 
 		'wp_skitter_fullscreen', 
 		'wp_skitter_xml', 
-		'wp_skitter_dots', 
 		'wp_skitter_width_label', 
 		'wp_skitter_width', 
 		'wp_skitter_height',
@@ -83,23 +85,24 @@ function wp_skitter_activate()
 	add_option('wp_skitter_animation','random');
 	add_option('wp_skitter_slides','5');
 	
-	add_option('wp_skitter_numbers','true');
 	add_option('wp_skitter_navigation','true');
 	add_option('wp_skitter_label','true');
+	add_option('wp_skitter_type_navigation','numbers');
 	
 	add_option('wp_skitter_crop','true');
+	
+	delete_option('wp_skitter_numbers');
+	delete_option('wp_skitter_thumbs');
+	delete_option('wp_skitter_dots');
 }
 
 function filterValueSkitter ($option, $value) 
 {
 	$booleans = array(
-		'wp_skitter_numbers', 
 		'wp_skitter_navigation', 
 		'wp_skitter_label', 
-		'wp_skitter_thumbs', 
 		'wp_skitter_hideTools', 
 		'wp_skitter_fullscreen', 
-		'wp_skitter_dots', 
 		'wp_skitter_show_randomly'
 	);
 	
@@ -152,7 +155,17 @@ function show_skitter()
 		$get_option = get_option($option);
 		$get_option = filterValueSkitter($option, $get_option);
 		if (!empty($get_option) && !in_array($option, $block)) {
-			$options[] = str_replace('wp_skitter_', '', $option).': '.$get_option;
+			if ($option == 'wp_skitter_type_navigation') {
+				if ($get_option != 'none') {
+					$options[] = $get_option.': true';
+				}
+				else {
+					$options[] = 'numbers: false';
+				}
+			}
+			else {
+				$options[] = str_replace('wp_skitter_', '', $option).': '.$get_option;
+			}
 		}
 	}
 
@@ -247,13 +260,13 @@ function wp_skitter_menu_function() {
 				</td>
 			</tr>
 			
-			<tr valign="top">
+			<tr valign="top" style="border-top:1px solid #ccc;">
 				<th scope="row">Number of slides</th>
 				<td><input type="text" name="wp_skitter_slides" id="wp_skitter_slides" size="7" value="<?php echo get_option('wp_skitter_slides'); ?>" /></td>
 			</tr>
 			
-			<tr valign="top">
-				<th scope="row" colspan="2">Customization</th>
+			<tr valign="top" style="border-top:1px solid #ccc;">
+				<th scope="row" colspan="2" style="font-size:16px;font-weight:bold;">Customization</th>
 			</tr>
 			
 			<tr valign="top">
@@ -302,17 +315,42 @@ function wp_skitter_menu_function() {
 				</td>
 			</tr>
 			
-			<tr valign="top">
+			<tr valign="top" style="border-top:1px solid #ccc;">
+				<th scope="row">Type of Navigation</th>
+				<td>
+					<?php $wp_skitter_type_navigation = get_option('wp_skitter_type_navigation'); ?>
+					<select name="wp_skitter_type_navigation" id="wp_skitter_type_navigation">
+						<?php
+						
+						$types_navigation = array(
+							'numbers', 
+							'thumbs', 
+							'dots', 
+							'none', 
+						);
+						
+						foreach ($types_navigation as $type_navigation) {
+							$selected = ($type_navigation == $wp_skitter_type_navigation) ? ' selected="selected"' : '';
+							$value = $type_navigation != 'all' ? $type_navigation : '';
+							echo sprintf('<option value="%s"%s>%s</option>', $value, $selected, $type_navigation);
+						}
+						
+						?>
+					</select>
+				</td>
+			</tr>
+			
+			<tr valign="top" style="border-top:1px solid #ccc;">
 				<th scope="row">width</th>
 				<td><input type="text" name="wp_skitter_width" id="wp_skitter_width" size="7" value="<?php echo get_option('wp_skitter_width'); ?>" />px</td>
 			</tr>
 			
-			<tr valign="top">
+			<tr valign="top" style="border-top:1px solid #ccc;">
 				<th scope="row">height</th>
 				<td><input type="text" name="wp_skitter_height" id="wp_skitter_height" size="7" value="<?php echo get_option('wp_skitter_height'); ?>" />px</td>
 			</tr>
 			
-			<tr valign="top">
+			<tr valign="top" style="border-top:1px solid #ccc;">
 				<th scope="row">crop image</th>
 				<td><input type="checkbox" value="true" name="wp_skitter_crop" id="wp_skitter_crop" <?php echo (get_option('wp_skitter_crop') == 'true' ? ' checked="checked"' : ''); ?> /></td>
 			</tr>
@@ -322,18 +360,15 @@ function wp_skitter_menu_function() {
 			$data = array(
 				array('velocity', 'Velocity of animation', '1', "2"),
 				array('interval', 'Interval between transitions', '2500', "3000"),
-				array('numbers', 'Numbers display', 'true', "false"),
 				array('navigation', 'Navigation display', 'true', "false"),
 				array('label', 'Label display', 'true', "false"),
 				array('easing_default', 'Easing default', 'null', "easeOutBack"),
 				array('animateNumberOut', 'Animation/style number', "{backgroundColor:'#333', color:'#fff'}", "{backgroundColor:'#000', color:'#ccc'}"),
 				array('animateNumberOver', 'Animation/style hover number', "{backgroundColor:'#000', color:'#fff'}", "{backgroundColor:'#000', color:'#ccc'}"),
 				array('animateNumberActive', 'Animation/style active number', "{backgroundColor:'#cc3333', color:'#fff'}", "{backgroundColor:'#000', color:'#ccc'}"),
-				array('thumbs', 'Navigation with thumbs', "false", "true"),
 				array('hideTools', 'Hide numbers and navigation', "false", "true"),
 				array('fullscreen', 'Fullscreen mode', "false", "true"),
 				array('xml', 'Loading data from XML file', "false", "xml/slides.xml"),
-				array('dots', 'Navigation with dots', "false", "true"),
 				array('show_randomly', 'Randomly slides', "false", "true"),
 				array('width_label', 'Width label', "null", "300px"),
 			);
@@ -342,7 +377,7 @@ function wp_skitter_menu_function() {
 			
 			?>
 			
-			<tr valign="top">
+			<tr valign="top" style="border-top:1px solid #ccc;">
 				<th scope="row"><?=$linha[0];?></th>
 				<td>
 					<?php
@@ -368,7 +403,7 @@ function wp_skitter_menu_function() {
 				</td>
 			</tr>
 	
-			<tr valign="top">
+			<tr valign="top" style="background-color:#eee;border-bottom:1px solid #ccc;">
 				<td scope="row" style="padding-left:20px;">Default: <strong><?=$linha[2];?></strong></td>
 				<td>Example: <strong><?=$linha[3];?></strong></td>
 			</tr>
