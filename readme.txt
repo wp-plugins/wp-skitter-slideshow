@@ -7,7 +7,7 @@ Author URI: http://thiagosf.net
 Contributors: thiagosf
 Requires at least: 2.9
 Tested up to: 3.1
-Stable tag: 1.1
+Stable tag: 1.2
 
 Slideshow flexible with many options for customizations.
 
@@ -36,6 +36,11 @@ To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a
 * And voila!
 
 == Changelog ==
+
+= version 1.2 =
+
+* Updated: Core configuration
+* Bug fixed: Dots
 
 = version 1.1 =
 
