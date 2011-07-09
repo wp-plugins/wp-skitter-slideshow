@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: Skitter Slideshow
-Plugin URI: http://thiagosf.net/projetct/jquery/skitter
+Plugin URI: http://thiagosf.net/projects/jquery/skitter/
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 1.2
+Version: 1.0
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
