@@ -258,11 +258,14 @@ function getSelectAnimations ($options = array())
 /** 
  * Debug arrays and others 
  */
-function pr ($array) 
+if (!function_exists('pr'))
 {
-	echo '<pre>';
-	print_r($array);
-	echo '</pre>';
+	function pr ($array) 
+	{
+		echo '<pre>';
+		print_r($array);
+		echo '</pre>';
+	}
 }
 
 /** 
@@ -406,7 +409,7 @@ function show_skitter()
 
 	$options = array();
 	$settings = getSkitterSettings();
-	$block = array('wp_skitter_category', 'wp_skitter_slides', 'wp_skitter_width', 'wp_skitter_height', 'wp_skitter_type');
+	$block = array('wp_skitter_category', 'wp_skitter_slides', 'wp_skitter_width', 'wp_skitter_height', 'wp_skitter_type', 'wp_skitter_attachments');
 
 	foreach ($settings as $option) {
 		$get_option = get_option($option);
