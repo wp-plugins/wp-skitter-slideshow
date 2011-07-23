@@ -6,7 +6,7 @@ Author: thiagosf
 Author URI: http://thiagosf.net
 Contributors: thiagosf
 Requires at least: 2.9
-Tested up to: 3.1
+Tested up to: 3.2.1
 Stable tag: 1.3
 
 Slideshow flexible with many options for customizations.
