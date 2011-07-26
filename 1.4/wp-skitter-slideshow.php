@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projetct/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 1.4
+Version: 1.3
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -294,20 +294,27 @@ function show_skitter()
 		case 'library' : 
 			$attachments = get_option('wp_skitter_attachments');
 			
-			foreach($attachments['image'] as $id_post) {
-				$post = get_post($id_post);
-				$image = wp_get_attachment_image_src( $id_post, 'large');
-				$skitter_images[] = array(
-					'image' => $image[0], 
-					'link' => $attachments['link'][$id_post], 
-					'label' => $attachments['label'][$id_post], 
-					'animation' => $attachments['animation'][$id_post], 
-				);
+			if (!empty($attachments)) {
+				foreach($attachments['image'] as $id_post) {
+					$post = get_post($id_post);
+					$image = wp_get_attachment_image_src( $id_post, 'large');
+					$skitter_images[] = array(
+						'image' => $image[0], 
+						'link' => $attachments['link'][$id_post], 
+						'label' => $attachments['label'][$id_post], 
+						'animation' => $attachments['animation'][$id_post], 
+					);
+				}
+				wp_reset_query();
 			}
 			
-			wp_reset_query();
-			
 			break; 
+			
+		case 'xml' : 
+			
+			$skitter_xml = true;
+			
+			break;
 			
 		case 'posts' : default : 
 			$query_posts = 'cat='.$category.'&posts_per_page='.$wp_skitter_slides;
@@ -340,13 +347,13 @@ function show_skitter()
 			break; 
 	}
 	
+	if (!empty($skitter_images) || isset($skitter_xml)) {
+	
 ?>
-
 <div id="wp_skitter" class="box_skitter">
 	<?php
 	
-	if (!empty($skitter_images)) 
-	{
+		if (!isset($skitter_xml)) {
 	
 	?>
 	<ul>
@@ -400,38 +407,37 @@ function show_skitter()
 	</ul>
 	<?php
 	
-	}
+		}
 	
 	?>
 </div>
-
 <?php
 
-	$options = array();
-	$settings = getSkitterSettings();
-	$block = array('wp_skitter_category', 'wp_skitter_slides', 'wp_skitter_width', 'wp_skitter_height', 'wp_skitter_type', 'wp_skitter_attachments');
+		$options = array();
+		$settings = getSkitterSettings();
+		$block = array('wp_skitter_category', 'wp_skitter_slides', 'wp_skitter_width', 'wp_skitter_height', 'wp_skitter_type', 'wp_skitter_attachments');
 
-	foreach ($settings as $option) {
-		$get_option = get_option($option);
-		$get_option = filterValueSkitter($option, $get_option);
-		if (!empty($get_option) && !in_array($option, $block)) {
-			if ($option == 'wp_skitter_type_navigation') {
-				if ($get_option != 'none') {
-					$options[] = $get_option.': true';
+		foreach ($settings as $option) {
+			$get_option = get_option($option);
+			$get_option = filterValueSkitter($option, $get_option);
+			if (!empty($get_option) && !in_array($option, $block)) {
+				if ($option == 'wp_skitter_type_navigation') {
+					if ($get_option != 'none') {
+						$options[] = $get_option.': true';
+					}
+					else {
+						$options[] = 'numbers: false';
+					}
 				}
 				else {
-					$options[] = 'numbers: false';
+					if ($option == 'wp_skitter_xml' && get_option('wp_skitter_type') != 'xml') continue;
+					if ($option == 'wp_skitter_animation' && !empty($remove_animation_option)) continue;
+					$options[] = str_replace('wp_skitter_', '', $option).': '.$get_option;
 				}
 			}
-			else {
-				if ($option == 'wp_skitter_xml' && get_option('wp_skitter_type') != 'xml') continue;
-				if ($option == 'wp_skitter_animation' && !empty($remove_animation_option)) continue;
-				$options[] = str_replace('wp_skitter_', '', $option).': '.$get_option;
-			}
 		}
-	}
 
-	$options = implode(", \n\t\t", $options);
+		$options = implode(", \n\t\t", $options);
 
 ?>
 
@@ -442,10 +448,11 @@ jQuery(window).load(function() {
 	});
 });
 </script>
-
 <?php 
-
-}
+	
+	} // end if (!empty($skitter_images))
+	
+} // end function show_skitter()
 
 /** 
  * Admin 
