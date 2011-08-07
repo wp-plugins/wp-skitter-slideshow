@@ -7,7 +7,7 @@ Author URI: http://thiagosf.net
 Contributors: thiagosf
 Requires at least: 2.9
 Tested up to: 3.2.1
-Stable tag: 1.4
+Stable tag: 1.5
 
 Slideshow flexible with many options for customizations.
 
@@ -36,6 +36,10 @@ To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a
 * And voila!
 
 == Changelog ==
+
+= version 1.5 =
+
+* Update plugin Skitter
 
 = version 1.4 =
 
