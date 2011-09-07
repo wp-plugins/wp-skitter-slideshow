@@ -299,7 +299,7 @@ function show_skitter()
 			if (!empty($attachments)) {
 				foreach($attachments['image'] as $id_post) {
 					$post = get_post($id_post);
-					$image = wp_get_attachment_image_src( $id_post, 'large');
+					$image = wp_get_attachment_image_src( $id_post, 'original');
 					$skitter_images[] = array(
 						'image' => $image[0], 
 						'link' => $attachments['link'][$id_post], 
@@ -331,7 +331,7 @@ function show_skitter()
 					else {
 						$link = get_permalink();
 					}
-					$thumbnail = get_the_post_thumbnail($post->ID, 'large');
+					$thumbnail = get_the_post_thumbnail($post->ID, 'original');
 					preg_match('/src="([^"]*)"/i', $thumbnail, $matches);
 					$image = (isset($matches[1])? $matches[1] : null);
 					
