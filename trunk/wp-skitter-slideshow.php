@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projetct/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 1.5
+Version: 1.6
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -125,6 +125,7 @@ function getSkitterSettings()
 		'wp_skitter_crop',
 		'wp_skitter_attachments',
 		'wp_skitter_type',
+		'wp_skitter_numbers_align',
 	);
 	return $wp_skitter_settings;
 }
@@ -148,13 +149,11 @@ function wp_skitter_activate()
 	add_option('wp_skitter_category','1');
 	add_option('wp_skitter_animation','random');
 	add_option('wp_skitter_slides','5');
-	
 	add_option('wp_skitter_navigation','true');
 	add_option('wp_skitter_label','true');
 	add_option('wp_skitter_type_navigation','numbers');
-	
+	add_option('wp_skitter_numbers_align','left');
 	add_option('wp_skitter_crop','true');
-	
 	add_option('wp_skitter_type','posts');
 	
 	add_option('wp_skitter_attachments', array(
@@ -188,7 +187,8 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_height', 
 		'wp_skitter_easing_default', 
 		'wp_skitter_xml', 
-		'wp_skitter_width_label'
+		'wp_skitter_width_label',
+		'wp_skitter_numbers_align',
 	);
 	
 	if (in_array($option, $booleans)) {
@@ -313,7 +313,6 @@ function show_skitter()
 			break; 
 			
 		case 'xml' : 
-			
 			$skitter_xml = true;
 			
 			break;
@@ -331,7 +330,7 @@ function show_skitter()
 					else {
 						$link = get_permalink();
 					}
-					$thumbnail = get_the_post_thumbnail($post->ID, 'original');
+					$thumbnail = get_the_post_thumbnail($post->ID, 'large');
 					preg_match('/src="([^"]*)"/i', $thumbnail, $matches);
 					$image = (isset($matches[1])? $matches[1] : null);
 					
@@ -869,6 +868,7 @@ jQuery(document).ready(function() {
 					array('velocity', 'Velocity of animation', '1', "2"),
 					array('interval', 'Interval between transitions', '2500', "3000"),
 					array('navigation', 'Navigation display', 'true', "false"),
+					array('numbers_align', 'Alignment of numbers/dots/thumbs', "left", "center"),
 					array('label', 'Label display', 'true', "false"),
 					array('width_label', 'Width label', "null", "300px"),
 					array('easing_default', 'Easing default', 'null', "easeOutBack"),
