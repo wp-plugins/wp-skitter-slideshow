@@ -19,6 +19,9 @@ USE
 
 To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a category that will display images, and customize the way you see fit. Add a post in the category you choose, and remember to choose an image highlighted, it will be what will appear on the slides. The plugin crops the image for better presentation of slides.
 
+Example:
+http://thiagosf.net/projects/jquery/skitter/
+
 == Screenshots ==
 
 1. Basic configuration
