@@ -131,6 +131,7 @@ function getSkitterSettings()
 		'wp_skitter_controls_position',
 		'wp_skitter_focus',
 		'wp_skitter_focus_position',
+		'wp_skitter_preview',
 	);
 	return $wp_skitter_settings;
 }
@@ -187,6 +188,7 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_enable_navigation_keys',
 		'wp_skitter_controls',
 		'wp_skitter_focus',
+		'wp_skitter_preview',
 	);
 	
 	$strings = array(
@@ -902,6 +904,7 @@ jQuery(document).ready(function() {
 					array('controls_position', 'Position of button controls', "center", "center, leftTop, rightTop, leftBottom, rightBottom"),
 					array('focus', 'Focus slideshow', "false", "true"),
 					array('focus_position', 'Position of button focus slideshow', "center", "center, leftTop, rightTop, leftBottom, rightBottom"),
+					array('preview', 'Preview with dots', "false", "true"),
 				);
 				
 				foreach($data as $linha) 
