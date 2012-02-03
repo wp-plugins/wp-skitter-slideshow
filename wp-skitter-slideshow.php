@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projetct/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 1.6
+Version: 1.7
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -126,6 +126,11 @@ function getSkitterSettings()
 		'wp_skitter_attachments',
 		'wp_skitter_type',
 		'wp_skitter_numbers_align',
+		'wp_skitter_enable_navigation_keys',
+		'wp_skitter_controls',
+		'wp_skitter_controls_position',
+		'wp_skitter_focus',
+		'wp_skitter_focus_position',
 	);
 	return $wp_skitter_settings;
 }
@@ -178,7 +183,10 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_label', 
 		'wp_skitter_hideTools', 
 		'wp_skitter_fullscreen', 
-		'wp_skitter_show_randomly'
+		'wp_skitter_show_randomly',
+		'wp_skitter_enable_navigation_keys',
+		'wp_skitter_controls',
+		'wp_skitter_focus',
 	);
 	
 	$strings = array(
@@ -189,6 +197,8 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_xml', 
 		'wp_skitter_width_label',
 		'wp_skitter_numbers_align',
+		'wp_skitter_controls_position',
+		'wp_skitter_focus_position',
 	);
 	
 	if (in_array($option, $booleans)) {
@@ -233,6 +243,15 @@ function getAnimations ()
 		'cubeJelly',
 		'glassCube',
 		'glassBlock',
+		'circles',
+		'circlesInside',
+		'circlesRotate',
+		'cubeShow',
+		'upBars',
+		'downBars',
+		'hideBars',
+		'swapBars',
+		'swapBarsBack',
 	);
 	return $animations;
 }
@@ -878,6 +897,11 @@ jQuery(document).ready(function() {
 					array('hideTools', 'Hide numbers and navigation', "false", "true"),
 					array('fullscreen', 'Fullscreen mode', "false", "true"),
 					array('show_randomly', 'Randomly slides', "false", "true"),
+					array('enable_navigation_keys', 'Enable navigation keys', "false", "true"),
+					array('controls', 'Option play/pause manually', "false", "true"),
+					array('controls_position', 'Position of button controls', "center", "center, leftTop, rightTop, leftBottom, rightBottom"),
+					array('focus', 'Focus slideshow', "false", "true"),
+					array('focus_position', 'Position of button focus slideshow', "center", "center, leftTop, rightTop, leftBottom, rightBottom"),
 				);
 				
 				foreach($data as $linha) 

@@ -3,9 +3,9 @@
  * @name jquery.skitter.js
  * @description Slideshow
  * @author Thiago Silva Ferreira - http://thiagosf.net
- * @version 3.4
+ * @version 3.8
  * @date August 04, 2010
- * @update October 28, 2011
+ * @update February 02, 2011
  * @copyright (c) 2010 Thiago Silva Ferreira - http://thiagosf.net
  * @license Dual licensed under the MIT or GPL Version 2 licenses
  * @example http://thiagosf.net/projects/jquery/skitter/
@@ -38,6 +38,7 @@
 		image_atual: 			null,
 		link_atual: 			null,
 		label_atual: 			null,
+		target_atual: 			'_self',
 		width_skitter: 			null,
 		height_skitter: 		null,
 		image_i: 				1,
@@ -61,6 +62,21 @@
 		imageSwitched:			null,
 		max_number_height: 		20,
 		numbers_align:			'left',
+		preview:				false,
+		focus:					false,
+		foucs_active:			false,
+		focus_position:			'center',
+		controls:				false,
+		controls_position:		'center',
+		progressbar:			false,
+		progressbar_css:		{},
+		is_paused:				false,
+		is_blur:				false,
+		is_paused_time:			false,
+		timeStart:				0,
+		elapsedTime:			0,
+		stop_over:				true,
+		enable_navigation_keys:	false,
 		structure: 	 			  '<a href="#" class="prev_button">prev</a>'
 								+ '<a href="#" class="next_button">next</a>'
 								+ '<span class="info_slide"></span>'
@@ -96,13 +112,14 @@
 		setup: function() 
 		{
 			var self = this;
-			
+
 			// Fullscreen
 			if (this.settings.fullscreen) {
 				var width = $(window).width();
 				var height = $(window).height();
 				this.box_skitter.width(width).height(height);
 				this.box_skitter.css({'position':'absolute', 'top':0, 'left':0, 'z-index':1000});
+				this.settings.stop_over = false;
 				$('body').css({'overflown':'hidden'});
 			}
 			
@@ -119,7 +136,7 @@
 			
 			// Settings
 			this.settings.easing_default 	= this.getEasing(this.settings.easing);
-			
+						
 			if (this.settings.velocity >= 2) this.settings.velocity = 1.3;
 			if (this.settings.velocity <= 0) this.settings.velocity = 1;
 			
@@ -140,8 +157,8 @@
 			this.settings.images_links = new Array();
 			
 			// Add image, link, animation type and label
-			var addImageLink = function (link, src, animation_type, label) {
-				self.settings.images_links.push([src, link, animation_type, label]);
+			var addImageLink = function (link, src, animation_type, label, target) {
+				self.settings.images_links.push([src, link, animation_type, label, target]);
 				if (self.settings.thumbs) {
 					var dimension_thumb = '';
 					if (self.settings.width_skitter > self.settings.height_skitter) {
@@ -179,7 +196,8 @@
 							var src 			= $(this).find('image').text();
 							var animation_type 	= $(this).find('image').attr('type');
 							var label 			= $(this).find('label').text();
-							addImageLink(link, src, animation_type, label);
+							var target 			= ($(this).find('target').text()) ? $(this).find('target').text() : '_self';
+							addImageLink(link, src, animation_type, label, target);
 						});
 					}
 				});
@@ -196,12 +214,13 @@
 					var src 			= $(this).find('img').attr('src');
 					var animation_type 	= $(this).find('img').attr('class');
 					var label 			= $(this).find('.label_text').html();
-					addImageLink(link, src, animation_type, label);
+					var target 			= ($(this).find('a').length && $(this).find('a').attr('target')) ? $(this).find('a').attr('target') : '_self';
+					addImageLink(link, src, animation_type, label, target);
 				});
 			}
 			
 			// Thumbs
-			if (self.settings.thumbs) 
+			if (self.settings.thumbs && !self.settings.fullscreen) 
 			{
 				// New animation
 				self.settings.animateNumberOut = {opacity:0.2, width:'70px'};
@@ -228,7 +247,7 @@
 					height_skitter = this.settings.height_skitter, 
 					w_info_slide_thumb = 0,
 					info_slide_thumb = self.box_skitter.find('.info_slide_thumb'),
-					x_value = self.box_skitter.offset().left,
+					x_value = 0,
 					y_value = self.box_skitter.offset().top;
 					
 				info_slide_thumb.find('.image_number').each(function(){
@@ -244,10 +263,11 @@
 				width_valor = this.settings.width_skitter;
 				
 				width_valor = width_skitter - 100;
-				x_value += 90;
 				
 				if (width_info_slide > self.settings.width_skitter) {
 					self.box_skitter.mousemove(function(e){
+						x_value = self.box_skitter.offset().left + 90;
+						
 						var x = e.pageX, y = e.pageY, new_x = 0;
 						
 						x = x - x_value;
@@ -311,6 +331,12 @@
 						self.box_skitter.find(class_info).css({'left':'15px'});
 						break;
 				}
+				
+				if (!self.settings.dots) {
+					if (self.box_skitter.find('.info_slide').height() > 20) {
+						self.box_skitter.find('.info_slide').hide();
+					}
+				}
 			}
 			
 			this.box_skitter.find('ul').hide();
@@ -321,6 +347,7 @@
 			this.settings.image_atual 	= this.settings.images_links[0][0];
 			this.settings.link_atual 	= this.settings.images_links[0][1];
 			this.settings.label_atual 	= this.settings.images_links[0][3];
+			this.settings.target_atual 	= this.settings.images_links[0][4];
 			
 			if (this.settings.images_links.length > 1) 
 			{
@@ -346,11 +373,8 @@
 					return false;
 				});
 				
-				this.box_skitter.find('.next_button, .prev_button').hover(function() {
-					$(this).stop().animate({opacity:0.5}, 200);
-				}, function(){
-					$(this).stop().animate({opacity:1.0}, 200);
-				});
+				self.box_skitter.find('.next_button, .prev_button').bind('mouseover', self.mouseOverButton);
+				self.box_skitter.find('.next_button, .prev_button').bind('mouseleave', self.mouseOutButton);
 				
 				this.box_skitter.find('.image_number').hover(function() {
 					if ($(this).attr('class') != 'image_number image_number_select') {
@@ -372,10 +396,66 @@
 				
 				this.box_skitter.find('.image_number').css(self.settings.animateNumberOut);
 				this.box_skitter.find('.image_number:eq(0)').css(self.settings.animateNumberActive);
+				
+				// Preview
+				if (self.settings.preview && self.settings.dots) 
+				{
+					var preview = $('<div id="preview_slide"><ul></ul></div>');
+					
+					for (var i = 0; i < this.settings.images_links.length; i++) {
+						var li = $('<li></li>');
+						var img = $('<img />');
+						img.attr('src', this.settings.images_links[i][0]);
+						li.append(img);
+						preview.find('ul').append(li);
+					}
+					
+					var width_preview_ul = parseInt(this.settings.images_links.length * 100);
+					preview.find('ul').width(width_preview_ul);
+					$(class_info).append(preview);
+					
+					self.box_skitter.find(class_info).find('.image_number').mouseenter(function() {
+						var _left_info = parseFloat(self.box_skitter.find(class_info).offset().left);
+						var _left_image = parseFloat($(this).offset().left);
+						var _left_preview = (_left_image - _left_info) - 43;
+						
+						var rel = parseInt($(this).attr('rel'));
+						var image_current_preview = self.box_skitter.find('#preview_slide_current img').attr('src');
+						var _left_ul = -(rel * 100);
+						
+						self.box_skitter.find('#preview_slide').find('ul').animate({left: _left_ul}, {duration:200, queue: false, easing: 'easeOutSine'});
+						self.box_skitter.find('#preview_slide').fadeTo(1,1).animate({left: _left_preview}, {duration:200, queue: false});
+					});
+					
+					self.box_skitter.find(class_info).mouseleave(function() {
+						$('#preview_slide').animate({opacity: 'hide'}, {duration: 200, queue: false});
+					});
+				}
 			}
 			
-			if (this.settings.hideTools) {
-				this.hideTools();
+			// Focus
+			if (self.settings.focus) {
+				self.focusSkitter();
+			}
+			
+			// Constrols
+			if (self.settings.controls) {
+				self.setControls();
+			}
+			
+			// Progressbar
+			if (self.settings.progressbar) {
+				self.addProgressBar();
+			}
+
+			// hideTools
+			if (self.settings.hideTools) {
+				self.hideTools();
+			}
+
+			// Navigation keys
+			if (self.settings.enable_navigation_keys) {
+				self.enableNavigationKeys();
 			}
 			
 			this.loadImages();
@@ -421,26 +501,42 @@
 		start: function()
 		{
 			var self = this;
+			var init_pause = false;
 			
-			this.setLinkAtual();
-			this.box_skitter.find('.image a img').attr({'src': this.settings.image_atual});
-			img_link = this.box_skitter.find('.image a');
-			img_link = this.resizeImage(img_link);
+			self.startTime();
+			self.windowFocusOut();
+			self.setLinkAtual();
+			
+			self.box_skitter.find('.image a img').attr({'src': self.settings.image_atual});
+			img_link = self.box_skitter.find('.image a');
+			img_link = self.resizeImage(img_link);
 			img_link.find('img').fadeIn(1500);
 			
-			this.setValueBoxText();
-			this.showBoxText();
-			this.stopOnMouseOver();
+			self.setValueBoxText();
+			self.showBoxText();
 			
-			// Start slideshow
-			if (this.settings.images_links.length > 1) {
-				this.timer = setTimeout(function() { self.nextImage(); }, this.settings.interval);
+			self.stopOnMouseOver();
+
+			var mouseOverInit = function() {
+				if (self.settings.stop_over) {
+					init_pause = true;
+					self.settings.is_hover_box_skitter = true;
+					self.clearTimer(true);
+					self.pauseProgressBar();
+				}
+			};
+
+			self.box_skitter.mouseover(mouseOverInit);
+			self.box_skitter.find('.next_button').mouseover(mouseOverInit);
+			
+			if (self.settings.images_links.length > 1 && !init_pause) {
+				self.timer = setTimeout(function() { self.nextImage(); }, self.settings.interval);
 			} 
 			else {
-				this.box_skitter.find('.loading, .image_loading, .image_number, .next_button, .prev_button').remove();
+				self.box_skitter.find('.loading, .image_loading, .image_number, .next_button, .prev_button').remove();
 			}
 			
-			if ($.isFunction(this.settings.onLoad)) this.settings.onLoad();
+			if ($.isFunction(self.settings.onLoad)) self.settings.onLoad();
 		},
 		
 		/**
@@ -449,6 +545,7 @@
 		jumpToImage: function(imageNumber) 
 		{
 			if (this.settings.is_animating == false) {
+				this.settings.elapsedTime = 0;
 				this.box_skitter.find('.box_clone').stop();
 				this.clearTimer(true);
 				this.settings.image_i = Math.floor(imageNumber);
@@ -466,6 +563,8 @@
 		 */
 		nextImage: function() 
 		{
+			var self = this;
+			
 			animations_functions = [
 				'cube', 
 				'cubeRandom', 
@@ -493,8 +592,16 @@
 				'glassBlock',
 				'circles',
 				'circlesInside',
-				'circlesRotate'
+				'circlesRotate',
+				'cubeShow',
+				'upBars', 
+				'downBars', 
+				'hideBars', 
+				'swapBars', 
+				'swapBarsBack'
 			];
+			
+			if (self.settings.progressbar) self.hideProgressBar();
 			
 			animation_type = (this.settings.animation == '' && this.settings.images_links[this.settings.image_i][2]) ? 
 				this.settings.images_links[this.settings.image_i][2] : (this.settings.animation == '' ? 'default' : this.settings.animation);
@@ -603,6 +710,24 @@
 				case 'circlesRotate' : 
 					this.animationCirclesRotate();
 					break;
+				case 'cubeShow' : 
+					this.animationCubeShow();
+					break;
+				case 'upBars' : 
+					this.animationDirectionBars({direction: 'top'});
+					break;
+				case 'downBars' : 
+					this.animationDirectionBars({direction: 'bottom'});
+					break;
+				case 'hideBars' : 
+					this.animationHideBars();
+					break;
+				case 'swapBars' : 
+					this.animationSwapBars();
+					break;
+				case 'swapBarsBack' : 
+					this.animationSwapBars({easing: 'easeOutBack'});
+					break;
 				default : 
 					this.animationTube();
 					break;
@@ -616,7 +741,7 @@
 			var options = $.extend({}, {random: false}, options || {});
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutBack' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutExpo' : this.settings.easing_default;
 			var time_animate = 700 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -639,8 +764,10 @@
 				init_top 			= (i % 2 == 0) ? init_top : -init_top;
 				init_left 			= (i % 2 == 0) ? init_left : -init_left;
 
-				var _vtop 			= init_top + (height_box * col_t) + (col_t * 50);
-				var _vleft 			= (init_left + (width_box * col)) + (col * 50);
+				var _vtop 			= init_top + (height_box * col_t) + (col_t * 150);
+				var _vleft 			= -self.settings.width_skitter;
+				//var _vleft 			= (init_left + (width_box * col)) + (col * 50);
+				
 				var _vtop_image 	= -(height_box * col_t);
 				
 				var _vleft_image 	= -(width_box * col);
@@ -650,21 +777,34 @@
 				var box_clone 		= this.getBoxClone();
 				box_clone.hide();
 				
+				var delay_time = 50 * (i);
+				
 				if (options.random) {
+					delay_time = 40 * (col);
 					box_clone.css({left:_vleft+'px', top:_vtop+'px', width:width_box, height:height_box});
 				} 
 				else {
-					box_clone.css({left:(this.settings.width_skitter / 2), top:this.settings.height_skitter + 50, width:width_box, height:height_box});
+					time_animate = 500;
+					//box_clone.css({left:(this.settings.width_skitter / 2), top:this.settings.height_skitter + 50, width:width_box, height:height_box});
+					box_clone.css({left:(this.settings.width_skitter) + (width_box * i), top:this.settings.height_skitter + (height_box * i), width:width_box, height:height_box});
 				}
 				
-				box_clone.find('img').css({left:_vleft_image, top:_vtop_image});
+				//box_clone.find('img').css({left:_vleft_image, top:_vtop_image});
+				//box_clone.find('img').css({left:_vleft_image+100, top:_vtop_image});
 				
 				this.addBoxClone(box_clone);
 				
-				var delay_time = 40 * (col);
-				
 				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
 				box_clone.show().delay(delay_time).animate({top:_btop+'px', left:_bleft+'px'}, time_animate, easing, callback);
+				
+				if (options.random) {
+					box_clone.find('img').css({left:_vleft_image+100, top:_vtop_image+50});
+					box_clone.find('img').delay(delay_time+(time_animate/2)).animate({left:_vleft_image, top:_vtop_image}, 1000, 'easeOutBack');
+				}
+				else {
+					box_clone.find('img').css({left:_vleft_image, top:_vtop_image});
+					box_clone.find('img').delay(delay_time+(time_animate/2)).fadeTo(100, 0.5).fadeTo(300, 1);
+				}
 				
 				col_t++;
 				if (col_t == division_h) {
@@ -679,12 +819,12 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 500 / this.settings.velocity;
 			
 			this.setActualLevel();
 			
-			var total 		= Math.ceil(this.settings.width_skitter / (this.settings.width_skitter / 10));
+			var total 		= Math.ceil(this.settings.width_skitter / (this.settings.width_skitter / 15));
 			var width_box 	= Math.ceil(this.settings.width_skitter / total);
 			var height_box 	= (this.settings.height_skitter);
 			
@@ -694,14 +834,17 @@
 				var _btop = 0;
 				
 				var box_clone = this.getBoxClone();
-				box_clone.css({left: this.settings.width_skitter, top:0, width:width_box, height:height_box});
-				box_clone.find('img').css({left:-(width_box * i), top:0});
+				box_clone.css({left: this.settings.width_skitter + 100, top:0, width:width_box, height:height_box});
+				box_clone.find('img').css({left:-(width_box * i)});
 				
 				this.addBoxClone(box_clone);
 				
 				var delay_time = 80 * (i);
 				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
-				box_clone.delay(delay_time).animate({top:_btop, left:_bleft, opacity:'show'}, time_animate, easing, callback);
+				//box_clone.delay(delay_time).animate({top:_btop, left:_bleft, opacity:'show'}, time_animate, easing, callback);
+				
+				box_clone.show().delay(delay_time).animate({top:_btop, left:_bleft}, time_animate, easing);
+				box_clone.find('img').hide().delay(delay_time+100).animate({opacity:'show'}, time_animate+300, easing, callback);
 			}
 			
 		},
@@ -713,8 +856,8 @@
 			var options = $.extend({}, {random: false}, options || {});
 
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutBack' : this.settings.easing_default;
-			var time_animate = 800 / this.settings.velocity;
+			var easing = (this.settings.easing_default == '') ? 'easeInQuad' : this.settings.easing_default;
+			var time_animate = 300 / this.settings.velocity;
 
 			var image_old = this.box_skitter.find('.image_main').attr('src');
 
@@ -756,7 +899,7 @@
 				this.addBoxClone(box_clone);
 				box_clone.show();
 
-				var delay_time = 30 * i;
+				var delay_time = 50 * i;
 
 				if (options.random) {
 					time_animate = 1000 / this.settings.velocity;
@@ -781,7 +924,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 500 / this.settings.velocity;
 			
 			var image_old = this.box_skitter.find('.image_main').attr('src');
@@ -844,7 +987,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeInBack' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeInBack' : this.settings.easing_default;
 			var time_animate = 300 / this.settings.velocity;
 			
 			var image_old = this.box_skitter.find('.image_main').attr('src');
@@ -920,7 +1063,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeInOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeInOutQuad' : this.settings.easing_default;
 			var time_animate = 600 / this.settings.velocity;
 			
 			var image_old = this.box_skitter.find('.image_main').attr('src');
@@ -984,7 +1127,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutExpo' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutExpo' : this.settings.easing_default;
 			var time_animate = 700 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1004,7 +1147,7 @@
 				
 				this.addBoxClone(box_clone);
 				
-				var delay_time = 70 * i;
+				var delay_time = 90 * i;
 				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
 				box_clone.delay(delay_time).animate({opacity:'show', top:_btop, left:0}, time_animate, easing, callback);
 			}
@@ -1017,7 +1160,7 @@
 			var options = $.extend({}, {random: false}, options || {});
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 400 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1061,7 +1204,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutElastic' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutElastic' : this.settings.easing_default;
 			var time_animate = 600 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1083,7 +1226,7 @@
 				this.addBoxClone(box_clone);
 				
 				var random = this.getRandom(total);
-				var delay_time = 40 * random;
+				var delay_time = 30 * random;
 				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
 				box_clone.show().delay(delay_time).animate({top:_btop}, time_animate, easing, callback);
 			}
@@ -1094,7 +1237,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 800 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1121,7 +1264,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 500 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1160,7 +1303,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutCirc' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 400 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1191,8 +1334,8 @@
 				delay_time = delay_time / 2.5;
 				
 				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
-				box_clone.show().delay(delay_time).animate({
-					top:_btop+'px', left:_bleft+'px'
+				box_clone.delay(delay_time).animate({
+					top:_btop+'px', left:_bleft+'px', opacity: 'show'
 				}, time_animate, easing, callback);
 			}
 			
@@ -1205,7 +1348,7 @@
 			var options = $.extend({}, {height: false}, options || {});
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 400 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1256,7 +1399,7 @@
 				}
 				else {
 					time_animate = time_animate + (i * 2);
-					easing = 'easeOutQuad';
+					var easing = 'easeOutQuad';
 					box_clone.delay(delay_time).animate({
 						opacity:'show',top:_btop+'px', left:_bleft+'px', height:'show'
 					}, time_animate, easing, callback);
@@ -1272,7 +1415,7 @@
 			var options = $.extend({}, {height: true, time_animate: 500, delay: 100}, options || {});
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = options.time_animate / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1302,7 +1445,7 @@
 					}, time_animate, easing, callback);
 				}
 				else {
-					easing = 'easeOutQuad';
+					var easing = 'easeOutQuad';
 					box_clone.delay(delay_time).animate({
 						opacity:'show',top:_btop+'px', left:_bleft+'px', height:'show'
 					}, time_animate, easing, callback);
@@ -1318,7 +1461,7 @@
 			var options = $.extend({}, {direction: 'top', delay_type: 'sequence', total: 7}, options || {});
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeInOutExpo' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeInOutExpo' : this.settings.easing_default;
 			var time_animate = 1200 / this.settings.velocity;
 			
 			var image_old = this.box_skitter.find('.image_main').attr('src');
@@ -1453,7 +1596,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeInOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 700 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1542,7 +1685,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutExpo' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutExpo' : this.settings.easing_default;
 			var time_animate = 500 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1589,7 +1732,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutExpo' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutExpo' : this.settings.easing_default;
 			var time_animate = 700 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1632,7 +1775,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeInQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeInQuad' : this.settings.easing_default;
 			var time_animate = 500 / this.settings.velocity;
 			
 			this.setActualLevel();
@@ -1649,12 +1792,37 @@
 				
 				var _fleft = _ileft; 
 				var _ftop = _itop; 
+				var box_clone = null;
+
+				// if ($.browser.mozilla) {
+				// 	box_clone = this.getBoxClone();
+				// 	box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
+				// 		'border-radius': radius+'px'
+				// 	});
+				// 	box_clone.find('img').css({left: -_ileft, top: -_itop});
+				// }
+				// else {
+					box_clone = this.getBoxCloneBackground({
+						image: 		self.settings.image_atual,
+						left: 		_ileft, 
+						top: 		_itop, 
+						width: 		size_box, 
+						height: 	size_box,
+						position: {
+							top:  	-_itop, 
+							left:  	-_ileft
+						}
+					}).css3({
+						'border-radius': radius+'px'
+					});
+				// }
 				
-				var box_clone = this.getBoxClone();
-				box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
-					'border-radius': radius+'px'
-				});
-				box_clone.find('img').css({left: -_ileft, top: -_itop});
+
+				// var box_clone = this.getBoxClone();
+				// box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
+				// 	'border-radius': radius+'px'
+				// });
+				// box_clone.find('img').css({left: -_ileft, top: -_itop});
 				
 				size_box += 100;
 				
@@ -1672,7 +1840,7 @@
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeInQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeInQuad' : this.settings.easing_default;
 			var time_animate = 500 / this.settings.velocity;
 			
 			var image_old = this.box_skitter.find('.image_main').attr('src');
@@ -1694,12 +1862,36 @@
 				
 				var _fleft = _ileft; 
 				var _ftop = _itop; 
+				var box_clone = null;
+
+				// if ($.browser.mozilla) {
+				// 	box_clone = this.getBoxCloneImgOld(image_old);
+				// 	box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
+				// 		'border-radius': radius+'px'
+				// 	});
+				// 	box_clone.find('img').css({left: -_ileft, top: -_itop});
+				// }
+				// else {
+					box_clone = this.getBoxCloneBackground({
+						image: 		image_old,
+						left: 		_ileft, 
+						top: 		_itop, 
+						width: 		size_box, 
+						height: 	size_box,
+						position: {
+							top:  	-_itop, 
+							left:  	-_ileft
+						}
+					}).css3({
+						'border-radius': radius+'px'
+					});
+				// }
 				
-				var box_clone = this.getBoxCloneImgOld(image_old);
-				box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
-					'border-radius': radius+'px'
-				});
-				box_clone.find('img').css({left: -_ileft, top: -_itop});
+				// var box_clone = this.getBoxCloneImgOld(image_old);
+				// box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
+				// 	'border-radius': radius+'px'
+				// });
+				// box_clone.find('img').css({left: -_ileft, top: -_itop});
 				
 				size_box -= 100;
 				
@@ -1712,13 +1904,13 @@
 				
 			}
 		},
-		
+
 		animationCirclesRotate: function(options)
 		{
 			var self = this;
 			
 			this.settings.is_animating = true;
-			easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
 			var time_animate = 500 / this.settings.velocity;
 			
 			var image_old = this.box_skitter.find('.image_main').attr('src');
@@ -1740,12 +1932,30 @@
 				
 				var _fleft = _ileft; 
 				var _ftop = _itop; 
-				
-				var box_clone = this.getBoxCloneImgOld(image_old);
-				box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
-					'border-radius': radius+'px'
-				});
-				box_clone.find('img').css({left: -_ileft, top: -_itop});
+				var box_clone = null;
+
+				if ($.browser.mozilla) {
+					box_clone = this.getBoxCloneImgOld(image_old);
+					box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
+						'border-radius': radius+'px'
+					});
+					box_clone.find('img').css({left: -_ileft, top: -_itop});
+				}
+				else {
+					box_clone = this.getBoxCloneBackground({
+						image: 		image_old,
+						left: 		_ileft, 
+						top: 		_itop, 
+						width: 		size_box, 
+						height: 	size_box,
+						position: {
+							top:  	-_itop, 
+							left:  	-_ileft
+						}
+					}).css3({
+						'border-radius': radius+'px'
+					});
+				}
 				
 				size_box -= 100;
 				
@@ -1756,6 +1966,224 @@
 				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
 				var _rotate = (i % 2 == 0) ? '20deg' : '-20deg';
 				box_clone.delay(delay_time).animate({top: _ftop, left: _fleft, opacity: 'hide', rotate: _rotate}, time_animate, easing, callback);
+			}
+		},
+		
+		animationCubeShow: function(options)
+		{
+			var self = this;
+			
+			this.settings.is_animating = true;
+			var easing = (this.settings.easing_default == '') ? 'easeOutQuad' : this.settings.easing_default;
+			var time_animate = 400 / this.settings.velocity;
+			
+			this.setActualLevel();
+			
+			var division_w 		= Math.ceil(this.settings.width_skitter / (this.settings.width_skitter / 8));
+			var division_h 		= Math.ceil(this.settings.height_skitter / (this.settings.height_skitter / 4));
+			var total			= division_w * division_h;
+			
+			var width_box 		= Math.ceil(this.settings.width_skitter / division_w);
+			var height_box 		= Math.ceil(this.settings.height_skitter / division_h);
+			
+			var last 			= false;
+			
+			var _btop 			= 0;
+			var _bleft 			= 0;
+			var line			= 0;
+			var col				= 0;
+			
+			for (i = 0; i < total; i++) {
+				
+				_btop = height_box * line;
+				_bleft = width_box * col;
+				
+				var delay_time = 30 * (i);
+				
+				var box_clone 		= this.getBoxClone();
+				box_clone.css({left:_bleft, top:_btop, width:width_box, height:height_box}).hide();
+				box_clone.find('img').css({left:-_bleft, top:-_btop});
+				this.addBoxClone(box_clone);
+				
+				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
+				box_clone.delay(delay_time).animate({width:'show', height:'show'}, time_animate, easing, callback);
+				
+				line++;
+				if (line == division_h) {
+					line = 0;
+					col++;
+				}
+			}
+		},
+		
+		animationDirectionBars: function(options)
+		{
+			var self = this;
+			
+			var options = $.extend({}, {direction: 'top'}, options || {});
+			
+			this.settings.is_animating = true;
+			var easing = (this.settings.easing_default == '') ? 'easeInOutQuad' : this.settings.easing_default;
+			var time_animate = 400 / this.settings.velocity;
+			
+			var image_old = this.box_skitter.find('.image_main').attr('src');
+			
+			this.setActualLevel();
+			
+			this.setLinkAtual();
+			this.box_skitter.find('.image_main').attr({'src':this.settings.image_atual});
+			
+			var total		= 12;
+			var width_box 	= Math.ceil(this.settings.width_skitter / total);
+			var height_box 	= this.settings.height_skitter;
+			var _ftop		= (options.direction == 'top') ? -height_box : height_box;
+			
+			for (i = 0; i < total; i++) {
+				var _vtop 			= 0;
+				var _vleft 			= (width_box * i);
+				var _vtop_image 	= 0;
+				var _vleft_image 	= -(width_box * i);
+				
+				var box_clone = this.getBoxCloneImgOld(image_old);
+				box_clone.css({left:_vleft+'px', top:_vtop+'px', width:width_box, height:height_box});
+				box_clone.find('img').css({left:_vleft_image, top:_vtop_image});
+				
+				this.addBoxClone(box_clone);
+				box_clone.show();
+				
+				var delay_time = 70 * i;
+				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
+				
+				box_clone.delay(delay_time).animate({top:_ftop}, time_animate, easing, callback);
+			}
+			
+		},
+
+		animationHideBars: function(options)
+		{
+			var self = this;
+
+			var options = $.extend({}, {random: false}, options || {});
+
+			this.settings.is_animating = true;
+			var easing = (this.settings.easing_default == '') ? 'easeOutCirc' : this.settings.easing_default;
+			var time_animate = 700 / this.settings.velocity;
+
+			var image_old = this.box_skitter.find('.image_main').attr('src');
+
+			this.setActualLevel();
+
+			this.setLinkAtual();
+			this.box_skitter.find('.image_main').attr({'src':this.settings.image_atual});
+
+			var division_w = Math.ceil(this.settings.width_skitter / (this.settings.width_skitter / 10));
+			var total = division_w;
+
+			var width_box = Math.ceil(this.settings.width_skitter / division_w);
+			var height_box = this.settings.height_skitter;
+
+			for (i = 0; i < total; i++) {
+				var _vtop = 0;
+				var _vleft = width_box * i;
+
+				var _vtop_image = 0;
+				var _vleft_image = -(width_box * i);
+
+				var _fleft = '+='+width_box;
+
+				var box_clone = this.getBoxCloneImgOld(image_old);
+				box_clone.css({left:0, top:0, width:width_box, height:height_box});
+				box_clone.find('img').css({left:_vleft_image, top:_vtop_image});
+
+				var box_clone_main = this.getBoxCloneImgOld(image_old);
+				box_clone_main.css({left:_vleft+'px', top:_vtop+'px', width:width_box, height:height_box});
+				box_clone_main.html(box_clone);
+
+				this.addBoxClone(box_clone_main);
+				box_clone.show();
+				box_clone_main.show();
+
+				var delay_time = 50 * i;
+				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
+				
+				box_clone.delay(delay_time).animate({left:_fleft}, time_animate, easing, callback);
+			}
+		},
+
+		animationSwapBars: function(options)
+		{
+			var self = this;
+			
+			var options = $.extend({}, {direction: 'top', delay_type: 'sequence', total: 7, easing: 'easeOutCirc'}, options || {});
+			
+			this.settings.is_animating = true;
+			var easing = (this.settings.easing_default == '') ? options.easing : this.settings.easing_default;
+			var time_animate = 500 / this.settings.velocity;
+			
+			var image_old = this.box_skitter.find('.image_main').attr('src');
+			
+			this.setActualLevel();
+			
+			this.setLinkAtual();
+			this.box_skitter.find('.image_main').attr({'src':this.settings.image_atual});
+			this.box_skitter.find('.image_main').hide();
+			
+			var total 		= options.total;
+			
+			for (i = 0; i < total; i++) {
+
+				var width_box 		= Math.ceil(this.settings.width_skitter / total);
+				var height_box 		= this.settings.height_skitter;
+				
+				var _itopc 			= 0;
+				var _ileftc 		= (width_box * i);
+				var _ftopc 			= -height_box;
+				var _fleftc 		= _ileftc + width_box ;
+				
+				var _itopn			= height_box;
+				var _ileftn			= _ileftc;
+				var _ftopn			= 0;
+				var _fleftn			= _ileftc;
+				
+				var _vtop_image 	= 0;
+				var _vleft_image 	= -_ileftc;
+				
+				switch (options.delay_type) 
+				{
+					case 'zebra' : default : var delay_time = (i % 2 == 0) ? 0 : 150; break;
+					case 'random' : var delay_time = 30 * (Math.random() * 30); break;
+					case 'sequence' : var delay_time = i * 100; break;
+				}
+
+				// Old image
+				var box_clone = this.getBoxCloneImgOld(image_old);
+				box_clone.find('img').css({left:_vleft_image, top:0});
+				box_clone.css({top:0, left:0, width:width_box, height:height_box});
+
+				// Next image
+				var box_clone_next = this.getBoxClone();
+				box_clone_next.find('img').css({left:_vleft_image, top:0});
+				box_clone_next.css({top:0, left:-width_box, width:width_box, height:height_box});
+				
+				// Container box images
+				var box_clone_container = this.getBoxClone();
+				box_clone_container.html('').append(box_clone).append(box_clone_next);
+				box_clone_container.css({top:0, left:_ileftc, width:width_box, height:height_box});
+				
+				// Add containuer
+				this.addBoxClone(box_clone_container);
+
+				// Show boxes
+				box_clone_container.show();
+				box_clone.show();
+				box_clone_next.show();
+				
+				// Callback
+				var callback = (i == (total - 1)) ? function() { self.finishAnimation(); } : '';
+
+				// Animations
+				box_clone.delay(delay_time).animate({ left: width_box }, time_animate, easing);
+				box_clone_next.delay(delay_time).animate({ left:0 }, time_animate, easing, callback);
 			}
 		},
 		
@@ -1770,9 +2198,12 @@
 			this.settings.is_animating = false;
 			this.box_skitter.find('.image_main').attr({'src': this.settings.image_atual});
 			this.box_skitter.find('.image a').attr({'href': this.settings.link_atual});
-			if (!this.settings.is_hover_box_skitter) {
+			
+			if (!this.settings.is_hover_box_skitter && !this.settings.is_paused && !this.settings.is_blur) {
 				this.timer = setTimeout(function() { self.completeMove(); }, this.settings.interval);
 			}
+			
+			self.startTime();
 		},
 
 		// Complete move
@@ -1780,7 +2211,7 @@
 		{
 			this.clearTimer(true);
 			this.box_skitter.find('.box_clone').remove();
-			this.nextImage();
+			if (!this.settings.is_paused && !this.settings.is_blur) this.nextImage();
 		},
 
 		// Actual config for animation
@@ -1798,10 +2229,12 @@
 			var name_image = this.settings.images_links[this.settings.image_i][0];
 			var link_image = this.settings.images_links[this.settings.image_i][1];
 			var label_image = this.settings.images_links[this.settings.image_i][3];
+			var target_link = this.settings.images_links[this.settings.image_i][4];
 			
 			this.settings.image_atual = name_image;
 			this.settings.link_atual = link_image;
 			this.settings.label_atual = label_image;
+			this.settings.target_atual = target_link;
 		},
 
 		// Add class for number
@@ -1929,8 +2362,15 @@
 			var opacity_elements = self.settings.opacity_elements;
 			var interval_in_elements = self.settings.interval_in_elements;
 			var interval_out_elements = self.settings.interval_out_elements;
+
 			
 			self.box_skitter.hover(function() {
+				
+				if (self.settings.stop_over) self.settings.is_hover_box_skitter = true;
+				
+				if (!self.settings.is_paused_time) {
+					self.pauseTime();
+				}
 				
 				if (self.settings.hideTools) {
 					if (self.settings.numbers) {
@@ -1953,13 +2393,50 @@
 							.show().css({opacity:0})
 							.animate({opacity: opacity_elements}, interval_in_elements);
 					}
+
+					if (self.settings.focus && !self.settings.foucs_active) {
+						self.box_skitter
+							.find('.focus_button')
+							.stop()
+							.show().css({opacity:0})
+							.animate({opacity:opacity_elements}, 200);
+					}
+					
+					if (self.settings.controls) {
+						self.box_skitter
+						.find('.play_pause_button')
+						.stop()
+						.show().css({opacity:0})
+						.animate({opacity:opacity_elements}, 200);
+					}
 				}
 				
 				self.clearTimer(true);
-				self.settings.is_hover_box_skitter = true;
+				
+				if (self.settings.focus && !self.settings.foucs_active && !self.settings.hideTools) {
+					self.box_skitter
+						.find('.focus_button')
+						.stop()
+						.animate({opacity:1}, 200);
+				}
+				
+				if (self.settings.controls && !self.settings.hideTools) {
+					self.box_skitter
+						.find('.play_pause_button')
+						.stop()
+						.animate({opacity:1}, 200);
+				}
 				
 			}, function() {
-			
+				if (self.settings.stop_over) self.settings.is_hover_box_skitter = false;
+				
+				if (self.settings.elapsedTime == 0 && !self.settings.is_animating && !self.settings.is_paused) {
+					self.startTime();
+				}
+				else if (!self.settings.is_paused) {
+					self.resumeTime();
+				}
+				
 				if (self.settings.hideTools) {
 					if (self.settings.numbers) {
 						self.box_skitter
@@ -1985,19 +2462,47 @@
 							.css({opacity: opacity_elements})
 							.animate({opacity:0}, interval_out_elements);
 					}
+
+
+					if (self.settings.focus && !self.settings.foucs_active) {
+						self.box_skitter
+							.find('.focus_button')
+							.stop()
+							.css({opacity: opacity_elements})
+							.animate({opacity:0}, 200);
+					}
+
+					if (self.settings.controls) {
+						self.box_skitter
+							.find('.play_pause_button')
+							.stop()
+							.css({opacity: opacity_elements})
+							.animate({opacity:0}, 200);
+					}
 				}
 				
 				self.clearTimer(true);
+				
 				if (!self.settings.is_animating && self.settings.images_links.length > 1) {
-					self.timer = setTimeout(function() {
-						self.timer = setTimeout(function() { self.completeMove(); }, self.settings.interval);
-						self.box_skitter.find('.image_main').attr({'src': self.settings.image_atual});
-						self.box_skitter.find('.image a').attr({'href': self.settings.link_atual});
-						
-					}, self.settings.interval);
+					self.timer = setTimeout(function() { self.completeMove(); }, self.settings.interval - self.settings.elapsedTime);
+					self.box_skitter.find('.image_main').attr({'src': self.settings.image_atual});
+					self.box_skitter.find('.image a').attr({'href': self.settings.link_atual});
 				}
 				
-				self.settings.is_hover_box_skitter = false;
+				if (self.settings.focus && !self.settings.foucs_active && !self.settings.hideTools) {
+					self.box_skitter
+						.find('.focus_button')
+						.stop()
+						.animate({opacity:0.3}, 200);
+				}
+				
+				if (self.settings.controls && !self.settings.hideTools) {
+					self.box_skitter
+						.find('.play_pause_button')
+						.stop()
+						.animate({opacity:0.3}, 200);
+				}
+				
 			});
 		}, 
 		
@@ -2010,7 +2515,7 @@
 		// Set link atual
 		setLinkAtual: function() {
 			if (this.settings.link_atual != '#') {
-				this.box_skitter.find('.image a').attr({'href': this.settings.link_atual});
+				this.box_skitter.find('.image a').attr({'href': this.settings.link_atual, 'target': this.settings.target_atual});
 			}
 			else {
 				this.box_skitter.find('.image a').removeAttr('href');
@@ -2023,8 +2528,339 @@
 			this.box_skitter.find('.prev_button').hide();
 			this.box_skitter.find('.next_button').hide();
 			this.box_skitter.find('.label_skitter').hide();
+			this.box_skitter.find('.focus_button').hide();
+			this.box_skitter.find('.play_pause_button').hide();
 		}, 
 		
+		// Animation mouse over
+		mouseOverButton: function() {
+			$(this).stop().animate({opacity:0.5}, 200);
+		}, 
+		
+		// Animation mouse out
+		mouseOutButton: function() {
+			$(this).stop().animate({opacity:1}, 200);
+		}, 
+		
+		// Focus Skitter
+		focusSkitter: function() {
+			var self = this;
+			
+			var focus_button = $('<a href="#" class="focus_button">focus</a>');
+			self.box_skitter.append(focus_button);
+			
+			var _left = (self.settings.width_skitter - focus_button.width()) / 2;
+			var _space = 0;
+			
+			if (self.settings.controls) _left -= 25;
+			if (self.settings.controls_position == self.settings.focus_position) _space = focus_button.width() + 5;
+			
+			var cssPosition = {left: _left};
+			
+			switch (self.settings.focus_position)
+			{
+				case 'leftTop' 		: cssPosition = {left: 5 + _space, top: 30}; break;
+				case 'rightTop' 	: cssPosition = {right: 5 + _space, top: 30}; break;
+				case 'leftBottom' 	: cssPosition = {left: 5 + _space, bottom: 5, top: 'auto'}; break;
+				case 'rightBottom' 	: cssPosition = {right: 5 + _space, bottom: 5, top: 'auto'}; break;
+			}
+			
+			focus_button
+				.css(cssPosition)
+				.animate({opacity:0.3}, self.settings.interval_in_elements);
+			
+			$(document).keypress(function(e) {
+				var code = (e.keyCode ? e.keyCode : e.which);
+				if (code == 27) $('#overlay_skitter').trigger('click');
+			});
+			
+			self.box_skitter.find('.focus_button').click(function() {
+				self.settings.foucs_active = true;
+				
+				$(this).stop().animate({opacity:0}, self.settings.interval_out_elements);
+				
+				var div = $('<div id="overlay_skitter"></div>')
+					.height( $(document).height() )
+					.hide()
+					.fadeTo(self.settings.interval_in_elements, 0.98);
+					
+				var _top = $('.box_skitter').offset().top;
+				var _left = $('.box_skitter').offset().left;
+				var _topFinal = (($(window).height() - $('.box_skitter').height()) / 2) + $(document).scrollTop();
+				var _leftFinal = ($(window).width() - $('.box_skitter').width()) / 2;
+				
+				self.box_skitter.before('<div id="mark_position"></div>');
+				$('body').prepend(div);
+				$('body').prepend(self.box_skitter);
+				self.box_skitter
+					.css({'top':_top, 'left':_left, 'position':'absolute', 'z-index':9999})
+					.animate({'top':_topFinal, 'left':_leftFinal}, 2000, 'easeOutExpo');
+				
+				$('#mark_position')	
+					.width($('.box_skitter').width())
+					.height($('.box_skitter').height())
+					.css({'background':'none'})
+					.fadeTo(300,0.3);
+				
+				$('#overlay_skitter').click(function() {
+					if ($(this).hasClass('finish_overlay_skitter')) return false;
+					
+					self.settings.foucs_active = false;
+					$(this).addClass('finish_overlay_skitter');
+					
+					$('#mark_position').before($('.box_skitter'));
+					
+					if (!self.settings.hideTools) self.box_skitter.find('.focus_button').animate({opacity:0.3}, 200);
+					
+					self.box_skitter
+						.stop()
+						.animate({'top':_top, 'left':_left}, 300, 'easeOutExpo', function() {
+							$(this).css({'position':'relative', 'top':0, 'left': 0});
+							$('#mark_position').remove();
+						});
+					
+					$('#overlay_skitter').fadeTo(self.settings.interval_out_elements, 0, function() {
+						$(this).remove();
+					});
+					
+					return false;
+				});
+				
+				return false;
+			});
+		},
+		
+
+		/**
+		 * Controls: play and stop
+		 */
+		setControls: function() {
+			var self = this;
+			
+			var play_pause_button = $('<a href="#" class="play_pause_button">pause</a>');
+			self.box_skitter.append(play_pause_button);
+			
+			var _left = (self.settings.width_skitter - play_pause_button.width()) / 2;
+			
+			if (self.settings.focus) _left += 25;
+			
+			var cssPosition = {left: _left};
+			
+			switch (self.settings.controls_position)
+			{
+				case 'leftTop' 		: cssPosition = {left: 5, top: 30}; break;
+				case 'rightTop' 	: cssPosition = {right: 5, top: 30}; break;
+				case 'leftBottom' 	: cssPosition = {left: 5, bottom: 5, top: 'auto'}; break;
+				case 'rightBottom' 	: cssPosition = {right: 5, bottom: 5, top: 'auto'}; break;
+			}
+			
+			play_pause_button
+				.css(cssPosition)
+				.animate({opacity:0.3}, self.settings.interval_in_elements);
+			
+			play_pause_button.click(function() {
+				if (!self.settings.is_paused) {
+					$(this).html('play');
+					$(this).fadeTo(100, 0.5).fadeTo(100, 1);
+					
+					$(this).addClass('play_button');
+					self.pauseTime();
+					self.settings.is_paused = true;
+					self.clearTimer(true);
+				}
+				else {
+					if (!self.settings.is_animating && !self.box_skitter.find('.progressbar').is(':visible')) {
+						self.settings.elapsedTime = 0;
+					}
+					else {
+						self.resumeTime();
+					}
+					
+					if (!self.settings.progressbar) self.resumeTime();
+					
+					self.settings.is_paused = false;
+					
+					$(this).html('pause');
+					$(this).fadeTo(100, 0.5).fadeTo(100, 1);
+					$(this).removeClass('play_button');
+					
+					if (!self.settings.stop_over) { 
+						self.clearTimer(true);
+						if (!self.settings.is_animating && self.settings.images_links.length > 1) {
+							self.timer = setTimeout(function() { self.completeMove(); }, self.settings.interval - self.settings.elapsedTime);
+							self.box_skitter.find('.image_main').attr({'src': self.settings.image_atual});
+							self.box_skitter.find('.image a').attr({'href': self.settings.link_atual});
+						}
+					}
+				}
+				
+				return false;
+			});
+		},
+				
+		/**
+		 * Object size
+		 */
+		objectSize: function(obj) {
+			var size = 0, key;
+			for (key in obj) { if (obj.hasOwnProperty(key)) size++; }
+			return size;
+		},
+		
+		/**
+		 * Add progress bar
+		 */
+		addProgressBar: function() {
+			var self = this;
+			
+			var progressbar = $('<div class="progressbar"></div>');
+			self.box_skitter.append(progressbar);
+			
+			if (self.objectSize(self.settings.progressbar_css) == 0)  {
+				if (parseInt(progressbar.css('width')) > 0) {
+					self.settings.progressbar_css.width = parseInt(progressbar.css('width'));
+				}
+				else {
+					self.settings.progressbar_css = {width: self.settings.width_skitter, height:5};
+				}
+			}
+			if (self.objectSize(self.settings.progressbar_css) > 0 && self.settings.progressbar_css.width == undefined) {
+				self.settings.progressbar_css.width = self.settings.width_skitter;
+			}
+			
+			progressbar.css(self.settings.progressbar_css).hide();
+		},
+		
+		/**
+		 * Start progress bar
+		 */
+		startProgressBar: function() {
+			var self = this;
+			if (self.settings.is_hover_box_skitter || self.settings.is_paused || self.settings.is_blur || !self.settings.progressbar) return false;
+			self.box_skitter.find('.progressbar')
+				.hide()
+				.dequeue()
+				.width(self.settings.progressbar_css.width)
+				.animate({width:'show'}, self.settings.interval, 'linear');
+		},
+		
+		/**
+		 * Pause progress bar
+		 */
+		pauseProgressBar: function() {
+			var self = this;
+			if (!self.settings.is_animating) {
+				self.box_skitter.find('.progressbar').stop();
+			}
+		},
+		
+		/**
+		 * Resume progress bar
+		 */
+		resumeProgressBar: function() {
+			var self = this;
+			
+			if (self.settings.is_hover_box_skitter || self.settings.is_paused || !self.settings.progressbar) return false;
+			
+			self.box_skitter.find('.progressbar').dequeue().animate({width: self.settings.progressbar_css.width}, (self.settings.interval - self.settings.elapsedTime), 'linear');
+		},
+		
+		/**
+		 * Hide progress bar
+		 */
+		hideProgressBar: function() {
+			var self = this;
+			
+			if (!self.settings.progressbar) return false;
+			
+			self.box_skitter.find('.progressbar').stop().fadeOut(300, function() {
+				$(this).width(self.settings.progressbar_css.width);
+			});
+		},
+
+		/**
+		 * Start time
+		 */
+		startTime: function() {
+			var self = this;
+			
+			self.settings.is_paused_time = false;
+			
+			var date = new Date();
+			self.settings.elapsedTime = 0;
+			self.settings.timeStart = date.getTime();
+			
+			// Start progress bar
+			self.startProgressBar();
+		}, 
+		
+		/**
+		 * Pause time
+		 */
+		pauseTime: function() {
+			var self = this;
+			
+			if (self.settings.is_paused_time) return false;
+			self.settings.is_paused_time = true;
+			
+			var date = new Date();
+			self.settings.elapsedTime += date.getTime() - self.settings.timeStart;
+			
+			// Pause progress bar
+			self.pauseProgressBar();
+		}, 
+		
+		/**
+		 * Resume time
+		 */
+		resumeTime: function() {
+			var self = this;
+			
+			self.settings.is_paused_time = false;
+			
+			var date = new Date();
+			self.settings.timeStart = date.getTime();
+			
+			// Resume progress bar
+			self.resumeProgressBar();
+		}, 
+
+		/**
+		 * Enable navigation keys
+		 */
+		enableNavigationKeys: function() {
+			var self = this;
+			$(window).keydown(function(e) {
+				// Next
+				if (e.keyCode == 39 || e.keyCode == 40) {
+					self.box_skitter.find('.next_button').trigger('click');
+				}
+				// Prev
+				else if (e.keyCode == 37 || e.keyCode == 38) {
+					self.box_skitter.find('.prev_button').trigger('click');
+				}
+			});
+		},
+		
+		/**
+		 * Get box clone with background image
+		 */
+		getBoxCloneBackground: function(options)
+		{
+			var box_clone = $('<div class="box_clone"></div>');
+
+			box_clone.css({
+				'left': 				options.left, 
+				'top': 					options.top, 
+				'width': 				options.width, 
+				'height': 				options.height,
+				'background-image': 	'url('+options.image+')', 
+				'background-position': 	options.position.left+'px '+options.position.top+'px'
+			});
+
+			return box_clone;
+		}, 
+
 		/**
 		 * Shuffle array
 		 * @author Daniel Castro Machado <daniel@cdt.unb.br>
@@ -2049,6 +2885,37 @@
 			var numRandom;
 			do numRandom = Math.random(); while (numRandom == 1); // Evita gerar o número valorFim + 1
 			return (numRandom * (valorFim - valorIni + 1) + valorIni) | 0;
+		},
+		
+		/** 
+		 * Stop on window focus out
+		 * @author Dan Partac (http://thiagosf.net/projects/jquery/skitter/#comment-355473307)
+		 */
+		windowFocusOut: function () {
+			var self = this;
+			$(window).bind('blur', function(){
+				self.settings.is_blur = true;
+				self.pauseTime();
+				self.clearTimer(true);
+			});
+			$(window).bind('focus', function(){
+				if ( self.settings.images_links.length > 1 ) {
+					self.settings.is_blur = false;	
+					
+					if  (self.settings.elapsedTime == 0) {
+						self.startTime();
+					}
+					else {
+						self.resumeTime();
+					}
+					
+					if (self.settings.elapsedTime <= self.settings.interval) {
+						self.timer = setTimeout(function() { self.completeMove(); }, self.settings.interval - self.settings.elapsedTime);
+						self.box_skitter.find('.image_main').attr({'src': self.settings.image_atual});
+						self.box_skitter.find('.image a').attr({'href': self.settings.link_atual});
+					}
+				}
+			});
 		}
 		
 	});
@@ -2060,9 +2927,8 @@
 	$.fn.css3 = function(props) {
 		var css = {};
 		var prefixes = ['moz', 'ms', 'o', 'webkit'];
-
-		for(var prop in props)
-		{
+		
+		for(var prop in props) {
 			// Add the vendor specific versions
 			for(var i=0; i<prefixes.length; i++)
 				css['-'+prefixes[i]+'-'+prop] = props[prop];
@@ -2081,34 +2947,24 @@
     // Updated 2010.11.06
     var rotateUnits = 'deg';
     
-    $.fn.rotate = function (val)
-    {
+    $.fn.rotate = function (val) {
         var style = $(this).css('transform') || 'none';
         
-        if (typeof val == 'undefined')
-        {
-            if (style)
-            {
+        if (typeof val == 'undefined') {
+            if (style) {
                 var m = style.match(/rotate\(([^)]+)\)/);
-                if (m && m[1])
-                {
+                if (m && m[1]) {
                     return m[1];
                 }
             }
-            
             return 0;
         }
         
         var m = val.toString().match(/^(-?\d+(\.\d+)?)(.+)?$/);
-        if (m)
-        {
-            if (m[3])
-            {
-                rotateUnits = m[3];
-            }
-            
-            $(this).css(
-                'transform',
+		
+        if (m) {
+            if (m[3]) rotateUnits = m[3];
+            $(this).css('transform',
                 style.replace(/none|rotate\([^)]*\)/, '') + 'rotate(' + m[1] + rotateUnits + ')'
             );
         }
@@ -2117,26 +2973,20 @@
     };
     
     // Note that scale is unitless.
-    $.fn.scale = function (val, duration, options)
-    {
+    $.fn.scale = function (val, duration, options) {
         var style = $(this).css('transform');
         
-        if (typeof val == 'undefined')
-        {
-            if (style)
-            {
+        if (typeof val == 'undefined') {
+            if (style) {
                 var m = style.match(/scale\(([^)]+)\)/);
-                if (m && m[1])
-                {
+                if (m && m[1]) {
                     return m[1];
                 }
             }
-            
             return 1;
         }
-        
-        $(this).css(
-            'transform',
+		
+        $(this).css('transform',
             style.replace(/none|scale\([^)]*\)/, '') + 'scale(' + val + ')'
         );
         
@@ -2146,39 +2996,31 @@
     // fx.cur() must be monkey patched because otherwise it would always
     // return 0 for current rotate and scale values
     var curProxied = $.fx.prototype.cur;
-    $.fx.prototype.cur = function ()
-    {
-        if (this.prop == 'rotate')
-        {
+    $.fx.prototype.cur = function () {
+        if (this.prop == 'rotate') {
             return parseFloat($(this.elem).rotate());
         }
-        else if (this.prop == 'scale')
-        {
+        else if (this.prop == 'scale') {
             return parseFloat($(this.elem).scale());
         }
-        
         return curProxied.apply(this, arguments);
     };
     
-    $.fx.step.rotate = function (fx)
-    {
+    $.fx.step.rotate = function (fx) {
         $(fx.elem).rotate(fx.now + rotateUnits);
     };
     
-    $.fx.step.scale = function (fx)
-    {
+    $.fx.step.scale = function (fx) {
         $(fx.elem).scale(fx.now);
     };
     
     var animateProxied = $.fn.animate;
-    $.fn.animate = function (prop)
-    {
+    $.fn.animate = function (prop) {
         if (typeof prop['rotate'] != 'undefined') {
             var m = prop['rotate'].toString().match(/^(([+-]=)?(-?\d+(\.\d+)?))(.+)?$/);
             if (m && m[5]) {
                 rotateUnits = m[5];
             }
-            
             prop['rotate'] = m[1];
         }
         
@@ -2189,11 +3031,7 @@
     // property uniformly across Safari/Chrome/Webkit, Firefox 3.5+, IE 9+, and Opera 11+.
     // 2009-2011 Zachary Johnson www.zachstronaut.com
     // Updated 2011.05.04 (May the fourth be with you!)
-    function getTransformProperty(element)
-    {
-        // Try transform first for forward compatibility
-        // In some versions of IE9, it is critical for msTransform to be in
-        // this list before MozTranform.
+    function getTransformProperty(element) {
         var properties = ['transform', 'WebkitTransform', 'msTransform', 'MozTransform', 'OTransform'];
         var p;
         while (p = properties.shift()) {
@@ -2201,18 +3039,13 @@
                 return p;
             }
         }
-        
-        // Default to transform also
         return 'transform';
     };
     
     var _propsObj = null;
     
     var proxied = $.fn.css;
-    $.fn.css = function (arg, val)
-    {
-        // Temporary solution for current 1.6.x incompatibility, while
-        // preserving 1.3.x compatibility, until I can rewrite using CSS Hooks
+    $.fn.css = function (arg, val) {
         if (_propsObj === null) {
             if (typeof $.cssProps != 'undefined') {
                 _propsObj = $.cssProps;
@@ -2249,7 +3082,7 @@
                     return jQuery.style(this.get(0), arg);
                 }
             }
-
+			
             // Call in form of css({'transform': ...})
             else if
             (
@@ -2264,4 +3097,4 @@
         return proxied.apply(this, arguments);
     };
 
-})(jQuery)
+})(jQuery);
