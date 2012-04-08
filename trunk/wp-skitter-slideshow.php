@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projetct/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 1.7
+Version: 1.8
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -40,12 +40,12 @@ function load_more_media()
 	
 	// Get media library
 	$args = array(
-		'post_type' => 'attachment', 
-		'post_mime_type' => array('image/png', 'image/jpeg', 'image/gif'), 
-		'numberposts' => 50, 
-		'offset' => $offset * 50, 
-		'orderby' => 'ID', 
-		'order' => 'DESC',
+		'post_type'			=> 'attachment', 
+		'post_mime_type'	=> array('image/png', 'image/jpeg', 'image/gif'), 
+		'numberposts'		=> 50, 
+		'offset'			=> $offset * 50, 
+		'orderby'			=> 'ID', 
+		'order'				=> 'DESC',
 	);
 	
 	$attachments = get_posts( $args );
@@ -61,16 +61,16 @@ function load_more_media()
 		if (is_array($options_attachments['image']) && in_array($id, $options_attachments['image'])) continue;
 		
 		$select = getSelectAnimations(array(
-			'name' => 'wp_skitter_attachments[animation]['.$id.']',
-			'id' => 'wp_skitter_attachment_animation_'.$id,
-			'class' =>  'attachments_animation'
+			'name'	=> 'wp_skitter_attachments[animation]['.$id.']',
+			'id'	=> 'wp_skitter_attachment_animation_'.$id,
+			'class'	=>  'attachments_animation'
 		));
 		
 		$out[] = array(
-			'id' => $id, 
-			'thumb' => wp_get_attachment_image( $id, array(50, 50) ), 
-			'image' => wp_get_attachment_image( $id, array(150, 150) ), 
-			'select' => $select
+			'id'		=> $id, 
+			'thumb'		=> wp_get_attachment_image( $id, array(50, 50) ), 
+			'image'		=> wp_get_attachment_image( $id, array(150, 150) ), 
+			'select'	=> $select
 		);
 	}
 	
@@ -132,6 +132,9 @@ function getSkitterSettings()
 		'wp_skitter_focus',
 		'wp_skitter_focus_position',
 		'wp_skitter_preview',
+		'wp_skitter_stop_over',
+		'wp_skitter_with_animations',
+		'wp_skitter_auto_play',
 	);
 	return $wp_skitter_settings;
 }
@@ -161,6 +164,8 @@ function wp_skitter_activate()
 	add_option('wp_skitter_numbers_align','left');
 	add_option('wp_skitter_crop','true');
 	add_option('wp_skitter_type','posts');
+	add_option('wp_skitter_stop_over','false');
+	add_option('wp_skitter_auto_play','true');
 	
 	add_option('wp_skitter_attachments', array(
 		'image' => array(),
@@ -189,6 +194,8 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_controls',
 		'wp_skitter_focus',
 		'wp_skitter_preview',
+		'wp_skitter_stop_over',
+		'wp_skitter_auto_play',
 	);
 	
 	$strings = array(
@@ -201,6 +208,7 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_numbers_align',
 		'wp_skitter_controls_position',
 		'wp_skitter_focus_position',
+		//'wp_skitter_with_animations',
 	);
 	
 	if (in_array($option, $booleans)) {
@@ -905,6 +913,9 @@ jQuery(document).ready(function() {
 					array('focus', 'Focus slideshow', "false", "true"),
 					array('focus_position', 'Position of button focus slideshow', "center", "center, leftTop, rightTop, leftBottom, rightBottom"),
 					array('preview', 'Preview with dots', "false", "true"),
+					array('stop_over', 'Stop animation to move mouse over it.', "false", "true"),
+					array('with_animations', 'Specific animations', "[]", "['paralell', 'glassCube', 'swapBars']"),
+					array('auto_play', 'Sets whether the slideshow will start automatically', "true", "false"),
 				);
 				
 				foreach($data as $linha) 
@@ -929,7 +940,7 @@ jQuery(document).ready(function() {
 						else {
 						
 						?>
-						<input type="text" name="wp_skitter_<?=$linha[0];?>" id="wp_skitter_<?=$linha[0];?>" size="20" value="<?php echo get_option('wp_skitter_'.$linha[0]); ?>" />
+						<input type="text" name="wp_skitter_<?=$linha[0];?>" id="wp_skitter_<?=$linha[0];?>" size="50" value="<?php echo get_option('wp_skitter_'.$linha[0]); ?>" />
 						<?php
 						
 						}

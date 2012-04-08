@@ -7,7 +7,7 @@ Author URI: http://thiagosf.net
 Contributors: thiagosf
 Requires at least: 2.9
 Tested up to: 3.3.1
-Stable tag: 1.7
+Stable tag: 1.8
 
 Slideshow flexible with many options for customizations.
 
@@ -18,9 +18,6 @@ Let your blog more elegant Skitter Slideshow! With numerous customization option
 USE 
 
 To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a category that will display images, and customize the way you see fit. Add a post in the category you choose, and remember to choose an image highlighted, it will be what will appear on the slides. The plugin crops the image for better presentation of slides.
-
-Example:
-http://thiagosf.net/projects/jquery/skitter/
 
 == Screenshots ==
 
@@ -39,6 +36,10 @@ http://thiagosf.net/projects/jquery/skitter/
 * And voila!
 
 == Changelog ==
+
+= version 1.8 =
+
+* Update plugin Skitter
 
 = version 1.7 =
 
