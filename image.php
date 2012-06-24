@@ -106,11 +106,18 @@ class ImageResize
 			$this->config['height']
 		);
 		
-		// Header
-		header('Content-type: image/'.$this->config['ext']);
-		
+		$extension = ($this->config['ext'] == 'jpg' ? 'jpeg' : $this->config['ext']);
+		$seconds_to_cache = 3600 * 24;
+		$expires = gmdate('D, d M Y H:i:s', time() + $seconds_to_cache) . ' GMT';
+
+		// Headers
+		header("Expires: $expires");
+		header("Pragma: cache");
+		header("Cache-Control: max-age=$seconds_to_cache");
+		header('Content-type: image/'.$extension);
+
 		// Tipo da imagem a ser criada
-		$imagetype = 'image'.($this->config['ext'] == 'jpg' ? 'jpeg' : $this->config['ext']);
+		$imagetype = 'image'.$extension;
 		
 		if ($imagetype != 'imagepng') {
 			$imagetype($image, null, $this->config['quality']);
@@ -119,7 +126,6 @@ class ImageResize
 			$imagetype($image);
 		}
 		
-		header('Content-type: image/'.$this->config['ext']);
 		imagedestroy($original);
 		imagedestroy($image);
 	}

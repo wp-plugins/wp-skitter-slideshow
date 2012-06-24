@@ -6,8 +6,8 @@ Author: thiagosf
 Author URI: http://thiagosf.net
 Contributors: thiagosf
 Requires at least: 2.9
-Tested up to: 3.3.1
-Stable tag: 1.8
+Tested up to: 3.3.4
+Stable tag: 1.9
 
 Slideshow flexible with many options for customizations.
 
@@ -34,6 +34,13 @@ To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a
 * Insert <code>&lt;?php if ( function_exists('show_skitter') )  { show_skitter(); } ?&gt;</code> into your template file.
 * Add a post thumb to a desired post.
 * And voila!
+
+== Changelog ==
+
+= version 1.9 =
+
+* Bug fixed: Crop image
+* Update plugin Skitter
 
 == Changelog ==
 
