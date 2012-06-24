@@ -39,7 +39,7 @@ To use the Skitter Slideshow, go to Settings -> Skitter Slideshow. Then select a
 
 = version 1.9 =
 
-* Bug fixed: Crop image
+* Bug fixed: Crop image 
 * Update plugin Skitter
 
 == Changelog ==
