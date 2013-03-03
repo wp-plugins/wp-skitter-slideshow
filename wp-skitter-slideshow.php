@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projects/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 2.0
+Version: 2.1
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -135,6 +135,7 @@ function getSkitterSettings()
 		'wp_skitter_stop_over',
 		'wp_skitter_with_animations',
 		'wp_skitter_auto_play',
+		'wp_skitter_background',
 	);
 	return $wp_skitter_settings;
 }
@@ -166,6 +167,7 @@ function wp_skitter_activate()
 	add_option('wp_skitter_type','posts');
 	add_option('wp_skitter_stop_over','false');
 	add_option('wp_skitter_auto_play','true');
+	add_option('wp_skitter_background','#000');
 	
 	add_option('wp_skitter_attachments', array(
 		'image' => array(),
@@ -208,6 +210,7 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_numbers_align',
 		'wp_skitter_controls_position',
 		'wp_skitter_focus_position',
+		'wp_skitter_background',
 		//'wp_skitter_with_animations',
 	);
 	
@@ -306,6 +309,7 @@ function show_skitter()
 {
 	$width_skitter = get_option('wp_skitter_width');
 	$height_skitter = get_option('wp_skitter_height');
+	$background_skitter = get_option('wp_skitter_background');
 	
 	$category = get_option('wp_skitter_category');
 	$wp_skitter_slides = get_option('wp_skitter_slides');
@@ -313,7 +317,15 @@ function show_skitter()
 ?>
 
 <style type="text/css">
-	.box_skitter {width:<?php echo $width_skitter; ?>px;height:<?php echo $height_skitter; ?>px;}
+	.box_skitter { 
+		width:<?php echo $width_skitter; ?>px;
+		height:<?php echo $height_skitter; ?>px; 
+		background: <?php echo $background_skitter; ?>; 
+	}
+	.box_skitter img { 
+		width: auto !important;
+		max-width: none !important;
+	}
 </style>
 
 <?php
@@ -462,6 +474,7 @@ function show_skitter()
 				else {
 					if ($option == 'wp_skitter_xml' && get_option('wp_skitter_type') != 'xml') continue;
 					if ($option == 'wp_skitter_animation' && !empty($remove_animation_option)) continue;
+					if ($option == 'wp_skitter_background') continue;
 					$options[] = str_replace('wp_skitter_', '', $option).': '.$get_option;
 				}
 			}
@@ -650,7 +663,7 @@ jQuery(document).ready(function() {
 	<h2>Skitter Slideshow</h2>
 	<form method="post" action="options.php" id="form_skitter">
 		<?php settings_fields( 'wp_skitter_settings' ); ?>
-		<input type="hidden" value="<?=$wp_skitter_type;?>" name="wp_skitter_type" id="wp_skitter_type" />
+		<input type="hidden" value="<?php echo $wp_skitter_type;?>" name="wp_skitter_type" id="wp_skitter_type" />
 		
 		<?php
 		
@@ -664,12 +677,12 @@ jQuery(document).ready(function() {
 		
 		?>
 		<div id="tabs_sk">
-			<a href="#library" rel="tab_media_library_sk" <?=$selected_library;?>>Media Library</a>
-			<a href="#posts" rel="tab_posts_sk" <?=$selected_posts;?>>Posts</a>
-			<a href="#xml" rel="tab_xml_sk" <?=$selected_xml;?>>XML</a>
+			<a href="#library" rel="tab_media_library_sk" <?php echo $selected_library;?>>Media Library</a>
+			<a href="#posts" rel="tab_posts_sk" <?php echo $selected_posts;?>>Posts</a>
+			<a href="#xml" rel="tab_xml_sk" <?php echo $selected_xml;?>>XML</a>
 		</div>
 		
-		<div id="tab_posts_sk" class="tab_item_sk<?=$tab_selected_posts;?>">
+		<div id="tab_posts_sk" class="tab_item_sk<?php echo $tab_selected_posts;?>">
 			<table class="form-table">
 				<tr valign="top">
 					<th scope="row">Category</th>
@@ -703,7 +716,7 @@ jQuery(document).ready(function() {
 			</table>
 		</div>
 		
-		<div id="tab_xml_sk" class="tab_item_sk<?=$tab_selected_xml;?>">
+		<div id="tab_xml_sk" class="tab_item_sk<?php echo $tab_selected_xml;?>">
 			<table class="form-table">
 				<tr valign="top">
 					<th scope="row">XML Path</th>
@@ -714,7 +727,7 @@ jQuery(document).ready(function() {
 			</table>
 		</div>
 		
-		<div id="tab_media_library_sk" class="tab_item_sk<?=$tab_selected_library;?>">
+		<div id="tab_media_library_sk" class="tab_item_sk<?php echo $tab_selected_library;?>">
 			<div id="box_list_images">
 				<div id="loading_list_sk">Loading...</div>
 				<?php
@@ -729,7 +742,7 @@ jQuery(document).ready(function() {
 					
 				?>
 					<div class="item_list_sk">
-						<a href="#<?=$id;?>" title="Add"<?=$style;?>><?=wp_get_attachment_image( $id, array(50, 50) );?></a>
+						<a href="#<?php echo $id;?>" title="Add"<?php echo $style;?>><?php echo wp_get_attachment_image( $id, array(50, 50) );?></a>
 					</div>
 				<?php
 					
@@ -759,18 +772,18 @@ jQuery(document).ready(function() {
 						$animation = $options_attachments['animation'][$id];
 						
 				?>
-					<div class="box_image_sk" id="box_image_sk_<?=$id;?>" style="display:block;">
+					<div class="box_image_sk" id="box_image_sk_<?php echo $id;?>" style="display:block;">
 						<div class="item_image_sk">
-							<?=wp_get_attachment_image( $id, array(150, 150) );?>
-							<input class="attachments_image" type="checkbox" value="<?=$id;?>" name="wp_skitter_attachments[image][]" id="wp_skitter_attachment_<?=$id;?>" checked="checked" style="display:none;" />
+							<?php echo wp_get_attachment_image( $id, array(150, 150) );?>
+							<input class="attachments_image" type="checkbox" value="<?php echo $id;?>" name="wp_skitter_attachments[image][]" id="wp_skitter_attachment_<?php echo $id;?>" checked="checked" style="display:none;" />
 						</div>
 						<div class="settings_slide">
-							<label for="wp_skitter_attachment_label_<?=$id;?>">Label</label>
-							<input class="attachments_label" type="text" name="wp_skitter_attachments[label][<?=$id;?>]" id="wp_skitter_attachment_label_<?=$id;?>" size="50" value="<?=$label;?>" />
-							<label for="wp_skitter_attachment_link_<?=$id;?>">Link</label>
-							<input class="attachments_link" type="text" name="wp_skitter_attachments[link][<?=$id;?>]" id="wp_skitter_attachment_link_<?=$id;?>" size="50" value="<?=$link;?>" />
-							<label for="wp_skitter_attachment_animation_<?=$id;?>">Animation</label>
-							<?=getSelectAnimations(array(
+							<label for="wp_skitter_attachment_label_<?php echo $id;?>">Label</label>
+							<input class="attachments_label" type="text" name="wp_skitter_attachments[label][<?php echo $id;?>]" id="wp_skitter_attachment_label_<?php echo $id;?>" size="50" value="<?php echo $label;?>" />
+							<label for="wp_skitter_attachment_link_<?php echo $id;?>">Link</label>
+							<input class="attachments_link" type="text" name="wp_skitter_attachments[link][<?php echo $id;?>]" id="wp_skitter_attachment_link_<?php echo $id;?>" size="50" value="<?php echo $link;?>" />
+							<label for="wp_skitter_attachment_animation_<?php echo $id;?>">Animation</label>
+							<?php echo getSelectAnimations(array(
 								'name' => 'wp_skitter_attachments[animation]['.$id.']',
 								'id' => 'wp_skitter_attachment_animation_'.$id,
 								'selected' => $animation,
@@ -792,18 +805,18 @@ jQuery(document).ready(function() {
 					if (is_array($options_attachments['image']) && in_array($id, $options_attachments['image'])) continue;
 					
 				?>
-					<div class="box_image_sk" id="box_image_sk_<?=$id;?>">
+					<div class="box_image_sk" id="box_image_sk_<?php echo $id;?>">
 						<div class="item_image_sk">
-							<?=wp_get_attachment_image( $id, array(150, 150) );?>
-							<input class="attachments_image" type="checkbox" value="<?=$id;?>" name="wp_skitter_attachments[image][]" id="wp_skitter_attachment_<?=$id;?>" checked="checked" style="display:none;" />
+							<?php echo wp_get_attachment_image( $id, array(150, 150) );?>
+							<input class="attachments_image" type="checkbox" value="<?php echo $id;?>" name="wp_skitter_attachments[image][]" id="wp_skitter_attachment_<?php echo $id;?>" checked="checked" style="display:none;" />
 						</div>
 						<div class="settings_slide">
-							<label for="wp_skitter_attachment_label_<?=$id;?>">Label</label>
-							<input class="attachments_label" type="text" name="wp_skitter_attachments[label][<?=$id;?>]" id="wp_skitter_attachment_label_<?=$id;?>" size="50" />
-							<label for="wp_skitter_attachment_link_<?=$id;?>">Link</label>
-							<input class="attachments_link" type="text" name="wp_skitter_attachments[link][<?=$id;?>]" id="wp_skitter_attachment_link_<?=$id;?>" size="50" />
-							<label for="wp_skitter_attachment_animation_<?=$id;?>">Animation</label>
-							<?=getSelectAnimations(array(
+							<label for="wp_skitter_attachment_label_<?php echo $id;?>">Label</label>
+							<input class="attachments_label" type="text" name="wp_skitter_attachments[label][<?php echo $id;?>]" id="wp_skitter_attachment_label_<?php echo $id;?>" size="50" />
+							<label for="wp_skitter_attachment_link_<?php echo $id;?>">Link</label>
+							<input class="attachments_link" type="text" name="wp_skitter_attachments[link][<?php echo $id;?>]" id="wp_skitter_attachment_link_<?php echo $id;?>" size="50" />
+							<label for="wp_skitter_attachment_animation_<?php echo $id;?>">Animation</label>
+							<?php echo getSelectAnimations(array(
 								'name' => 'wp_skitter_attachments[animation]['.$id.']',
 								'id' => 'wp_skitter_attachment_animation_'.$id,
 								'class' =>  'attachments_animation'
@@ -887,6 +900,11 @@ jQuery(document).ready(function() {
 				</tr>
 				
 				<tr valign="top" style="border-top:1px solid #ccc;">
+					<th scope="row">background</th>
+					<td><input type="text" name="wp_skitter_background" id="wp_skitter_background" size="20" value="<?php echo get_option('wp_skitter_background'); ?>" /></td>
+				</tr>
+				
+				<tr valign="top" style="border-top:1px solid #ccc;">
 					<th scope="row">crop image</th>
 					<td><input type="checkbox" value="true" name="wp_skitter_crop" id="wp_skitter_crop" <?php echo (get_option('wp_skitter_crop') == 'true' ? ' checked="checked"' : ''); ?> /></td>
 				</tr>
@@ -924,7 +942,7 @@ jQuery(document).ready(function() {
 				?>
 				
 				<tr valign="top" style="border-top:1px solid #ccc;">
-					<th scope="row"><?=$linha[0];?></th>
+					<th scope="row"><?php echo $linha[0];?></th>
 					<td>
 						<?php
 						
@@ -933,14 +951,14 @@ jQuery(document).ready(function() {
 							$selected = (get_option('wp_skitter_'.$linha[0]) == 'true' ? ' checked="checked"' : '');
 							
 						?>
-						<input type="checkbox" value="true" name="wp_skitter_<?=$linha[0];?>" <?php echo $selected;?> />
+						<input type="checkbox" value="true" name="wp_skitter_<?php echo $linha[0];?>" <?php echo $selected;?> />
 						<?php
 							
 						}
 						else {
 						
 						?>
-						<input type="text" name="wp_skitter_<?=$linha[0];?>" id="wp_skitter_<?=$linha[0];?>" size="50" value="<?php echo get_option('wp_skitter_'.$linha[0]); ?>" />
+						<input type="text" name="wp_skitter_<?php echo $linha[0];?>" id="wp_skitter_<?php echo $linha[0];?>" size="50" value="<?php echo get_option('wp_skitter_'.$linha[0]); ?>" />
 						<?php
 						
 						}
@@ -950,8 +968,8 @@ jQuery(document).ready(function() {
 				</tr>
 		
 				<tr valign="top" style="background-color:#eee;border-bottom:1px solid #ccc;">
-					<td scope="row" style="padding-left:20px;">Default: <strong><?=$linha[2];?></strong></td>
-					<td>Example: <strong><?=$linha[3];?></strong></td>
+					<td scope="row" style="padding-left:20px;">Default: <strong><?php echo $linha[2];?></strong></td>
+					<td>Example: <strong><?php echo $linha[3];?></strong></td>
 				</tr>
 				
 				<?php
@@ -969,4 +987,17 @@ jQuery(document).ready(function() {
 	</form>
 </div>
 
-<?php } ?>
+<?php 
+
+} 
+
+/**
+ * Shortcode
+ */
+function skitter_shortcode( $atts ) 
+{
+	return show_skitter( $atts );
+}
+add_shortcode( 'skitter', 'skitter_shortcode' );
+
+?>
