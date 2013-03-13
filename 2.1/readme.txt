@@ -2,6 +2,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://wordpress.org/extend/plugins/wp-skitter-slideshow/
 Tags: skitter, jquery slideshow, slider, jquery slider, jquery, gallery, gallery slideshow
+Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HPUDB9WNAM2HS
 Author: thiagosf
 Author URI: http://thiagosf.net
 Contributors: thiagosf
