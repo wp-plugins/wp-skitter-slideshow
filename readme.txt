@@ -2,13 +2,12 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://wordpress.org/extend/plugins/wp-skitter-slideshow/
 Tags: skitter, jquery slideshow, slider, jquery slider, jquery, gallery, gallery slideshow
-Donate link: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=HPUDB9WNAM2HS
 Author: thiagosf
 Author URI: http://thiagosf.net
 Contributors: thiagosf
 Requires at least: 2.9
 Tested up to: 3.5.1
-Stable tag: 2.1
+Stable tag: 2.2
 
 Slideshow flexible with many options for customizations.
 
@@ -42,6 +41,10 @@ http://www.skitter-slider.net/
 * And voila!
 
 == Changelog ==
+
+= version 2.2 =
+
+* Update plugin Skitter
 
 = version 2.1 =
 

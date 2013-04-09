@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projects/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 2.1
+Version: 2.2
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -136,6 +136,7 @@ function getSkitterSettings()
 		'wp_skitter_with_animations',
 		'wp_skitter_auto_play',
 		'wp_skitter_background',
+		'wp_skitter_labelAnimation', 
 	);
 	return $wp_skitter_settings;
 }
@@ -168,6 +169,7 @@ function wp_skitter_activate()
 	add_option('wp_skitter_stop_over','false');
 	add_option('wp_skitter_auto_play','true');
 	add_option('wp_skitter_background','#000');
+	add_option('wp_skitter_animation','slideUp');
 	
 	add_option('wp_skitter_attachments', array(
 		'image' => array(),
@@ -211,6 +213,7 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_controls_position',
 		'wp_skitter_focus_position',
 		'wp_skitter_background',
+		'wp_skitter_labelAnimation',
 		//'wp_skitter_with_animations',
 	);
 	
@@ -917,6 +920,7 @@ jQuery(document).ready(function() {
 					array('navigation', 'Navigation display', 'true', "false"),
 					array('numbers_align', 'Alignment of numbers/dots/thumbs', "left", "center"),
 					array('label', 'Label display', 'true', "false"),
+					array('labelAnimation', 'Label animation', 'slideUp', "slideUp, left, right, fixed"),
 					array('width_label', 'Width label', "null", "300px"),
 					array('easing_default', 'Easing default', 'null', "easeOutBack"),
 					array('animateNumberOut', 'Animation/style number', "{backgroundColor:'#333', color:'#fff'}", "{backgroundColor:'#000', color:'#ccc'}"),
