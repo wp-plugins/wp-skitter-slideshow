@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projects/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 2.2
+Version: 2.3
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -84,9 +84,9 @@ function load_more_media()
 function init_load()
 {
     wp_enqueue_script('skitter', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.skitter.min.js', array('jquery'));
-    wp_enqueue_script('jquery.animate-colors', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.animate-colors-min.js', array('jquery'));
+    // wp_enqueue_script('jquery.animate-colors', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.animate-colors-min.js', array('jquery'));
     wp_enqueue_script('jquery.easing', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.easing.1.3.js', array('jquery'));
-    wp_enqueue_style( 'skitter.styles', WP_PLUGIN_URL . '/wp-skitter-slideshow/css/skitter.styles.css');
+    wp_enqueue_style( 'skitter.styles', WP_PLUGIN_URL . '/wp-skitter-slideshow/css/skitter.styles.min.css');
 }
 
 /** 
@@ -137,6 +137,7 @@ function getSkitterSettings()
 		'wp_skitter_auto_play',
 		'wp_skitter_background',
 		'wp_skitter_labelAnimation', 
+		'wp_skitter_theme', 
 	);
 	return $wp_skitter_settings;
 }
@@ -170,6 +171,7 @@ function wp_skitter_activate()
 	add_option('wp_skitter_auto_play','true');
 	add_option('wp_skitter_background','#000');
 	add_option('wp_skitter_animation','slideUp');
+	add_option('wp_skitter_theme','square');
 	
 	add_option('wp_skitter_attachments', array(
 		'image' => array(),
@@ -214,7 +216,7 @@ function filterValueSkitter ($option, $value)
 		'wp_skitter_focus_position',
 		'wp_skitter_background',
 		'wp_skitter_labelAnimation',
-		//'wp_skitter_with_animations',
+		'wp_skitter_theme',
 	);
 	
 	if (in_array($option, $booleans)) {
@@ -270,6 +272,22 @@ function getAnimations ()
 		'swapBarsBack',
 	);
 	return $animations;
+}
+
+/**
+ * Get themes
+ */
+function getThemes () 
+{
+	$themes = array(
+		'default', 
+		'minimalist', 
+		'round', 
+		'clean', 
+		'square', 
+	);
+
+	return $themes;
 }
 
 /** 
@@ -845,7 +863,27 @@ jQuery(document).ready(function() {
 					<th scope="row" colspan="2"><h3>Customization</h3></th>
 				</tr>
 				<tr valign="top">
-					<th scope="row">Type of Animation</th>
+					<th scope="row">Skitter Theme</th>
+					<td>
+						<?php $wp_skitter_theme = get_option('wp_skitter_theme'); ?>
+						<select name="wp_skitter_theme" id="wp_skitter_theme">
+							<?php
+							
+							$themes = getThemes();
+							
+							foreach ($themes as $theme) 
+							{
+								$selected = ($theme == $wp_skitter_theme) ? ' selected="selected"' : '';
+								$value = $theme != 'all' ? $theme : '';
+								echo sprintf('<option value="%s"%s>%s</option>', $value, $selected, $theme);
+							}
+							
+							?>
+						</select>
+					</td>
+				</tr>
+				<tr valign="top" style="border-top:1px solid #ccc;">
+					<th scope="row">Animation type</th>
 					<td>
 						<?php $wp_skitter_animation = get_option('wp_skitter_animation'); ?>
 						<select name="wp_skitter_animation" id="wp_skitter_animation">
@@ -867,7 +905,7 @@ jQuery(document).ready(function() {
 				</tr>
 				
 				<tr valign="top" style="border-top:1px solid #ccc;">
-					<th scope="row">Type of Navigation</th>
+					<th scope="row">Navigation type</th>
 					<td>
 						<?php $wp_skitter_type_navigation = get_option('wp_skitter_type_navigation'); ?>
 						<select name="wp_skitter_type_navigation" id="wp_skitter_type_navigation">
@@ -923,9 +961,9 @@ jQuery(document).ready(function() {
 					array('labelAnimation', 'Label animation', 'slideUp', "slideUp, left, right, fixed"),
 					array('width_label', 'Width label', "null", "300px"),
 					array('easing_default', 'Easing default', 'null', "easeOutBack"),
-					array('animateNumberOut', 'Animation/style number', "{backgroundColor:'#333', color:'#fff'}", "{backgroundColor:'#000', color:'#ccc'}"),
-					array('animateNumberOver', 'Animation/style hover number', "{backgroundColor:'#000', color:'#fff'}", "{backgroundColor:'#000', color:'#ccc'}"),
-					array('animateNumberActive', 'Animation/style active number', "{backgroundColor:'#cc3333', color:'#fff'}", "{backgroundColor:'#000', color:'#ccc'}"),
+					array('animateNumberOut', 'Animation/style number', "null", "{backgroundColor:'#000', color:'#ccc'}"),
+					array('animateNumberOver', 'Animation/style hover number', "null", "{backgroundColor:'#000', color:'#ccc'}"),
+					array('animateNumberActive', 'Animation/style active number', "null", "{backgroundColor:'#000', color:'#ccc'}"),
 					array('hideTools', 'Hide numbers and navigation', "false", "true"),
 					array('fullscreen', 'Fullscreen mode', "false", "true"),
 					array('show_randomly', 'Randomly slides', "false", "true"),
