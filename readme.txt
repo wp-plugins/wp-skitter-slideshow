@@ -8,7 +8,7 @@ Author URI: http://thiagosf.net
 Contributors: thiagosf
 Requires at least: 2.9
 Tested up to: 3.5.1
-Stable tag: 2.3
+Stable tag: 2.3.1
 
 Slideshow flexible with many options for customizations.
 
@@ -42,6 +42,10 @@ http://www.skitter-slider.net/
 * And voila!
 
 == Changelog ==
+
+= version 2.3.1 =
+
+* Bug fixes in plugin Skitter
 
 = version 2.3 =
 
