@@ -3,7 +3,7 @@
 Plugin Name: Skitter Slideshow
 Plugin URI: http://thiagosf.net/projects/jquery/skitter
 Description: jQuery Slideshow for Wordpress using Skitter Slideshow
-Version: 2.3.2
+Version: 2.3.3
 Author: Thiago Silva Ferreira
 Author URI: http://thiagosf.net
 License: GPL
@@ -83,10 +83,10 @@ function load_more_media()
  */
 function init_load()
 {
-    wp_enqueue_script('skitter', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.skitter.min.js', array('jquery'));
-    // wp_enqueue_script('jquery.animate-colors', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.animate-colors-min.js', array('jquery'));
-    wp_enqueue_script('jquery.easing', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.easing.1.3.js', array('jquery'));
-    wp_enqueue_style( 'skitter.styles', WP_PLUGIN_URL . '/wp-skitter-slideshow/css/skitter.styles.min.css');
+		wp_enqueue_script('skitter', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.skitter.min.js', array('jquery'));
+		// wp_enqueue_script('jquery.animate-colors', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.animate-colors-min.js', array('jquery'));
+		wp_enqueue_script('jquery.easing', WP_PLUGIN_URL . '/wp-skitter-slideshow/js/jquery.easing.1.3.js', array('jquery'));
+		wp_enqueue_style( 'skitter.styles', WP_PLUGIN_URL . '/wp-skitter-slideshow/css/skitter.styles.min.css');
 }
 
 /** 
@@ -94,7 +94,7 @@ function init_load()
  */
 function wp_skitter_add_menu() 
 {
-    $page = add_options_page('Skitter Slideshow', 'Skitter Slideshow', 'administrator', 'wp_skitter_menu', 'wp_skitter_menu_function');
+		$page = add_options_page('Skitter Slideshow', 'Skitter Slideshow', 'administrator', 'wp_skitter_menu', 'wp_skitter_menu_function');
 }
 
 /** 
@@ -380,7 +380,7 @@ function show_skitter()
 			break;
 			
 		case 'posts' : default : 
-			$query_posts = 'cat='.$category.'&posts_per_page='.$wp_skitter_slides;
+			$query_posts = 'cat='.$category.'&posts_per_page='.$wp_skitter_slides.'&meta_key=_thumbnail_id';
 			query_posts( $query_posts ); 
 			
 			if ( have_posts() ) : 
