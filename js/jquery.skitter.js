@@ -3,9 +3,9 @@
  * @name jquery.skitter.js
  * @description Slideshow
  * @author Thiago Silva Ferreira - http://thiagosf.net
- * @version 4.2.2
+ * @version 4.2.3
  * @date August 04, 2010
- * @update July 06, 2014
+ * @update May 05, 2015
  * @copyright (c) 2010 Thiago Silva Ferreira - http://thiagosf.net
  * @license Dual licensed under the MIT or GPL Version 2 licenses
  * @example http://thiagosf.net/projects/jquery/skitter/
@@ -1970,35 +1970,19 @@
 				var _ftop = _itop; 
 				var box_clone = null;
 
-				// if ($.browser.mozilla) {
-				// 	box_clone = this.getBoxClone();
-				// 	box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
-				// 		'border-radius': radius+'px'
-				// 	});
-				// 	box_clone.find('img').css({left: -_ileft, top: -_itop});
-				// }
-				// else {
-					box_clone = this.getBoxCloneBackground({
-						image: 		self.settings.image_atual,
-						left: 		_ileft, 
-						top: 		_itop, 
-						width: 		size_box, 
-						height: 	size_box,
-						position: {
-							top:  	-_itop, 
-							left:  	-_ileft
-						}
-					}).css3({
-						'border-radius': radius+'px'
-					});
-				// }
-				
-
-				// var box_clone = this.getBoxClone();
-				// box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
-				// 	'border-radius': radius+'px'
-				// });
-				// box_clone.find('img').css({left: -_ileft, top: -_itop});
+				box_clone = this.getBoxCloneBackground({
+					image: 		self.settings.image_atual,
+					left: 		_ileft, 
+					top: 		_itop, 
+					width: 		size_box, 
+					height: 	size_box,
+					position: {
+						top:  	-_itop, 
+						left:  	-_ileft
+					}
+				}).css3({
+					'border-radius': radius+'px'
+				});
 				
 				size_box += 100;
 				
@@ -2040,34 +2024,19 @@
 				var _ftop = _itop; 
 				var box_clone = null;
 
-				// if ($.browser.mozilla) {
-				// 	box_clone = this.getBoxCloneImgOld(image_old);
-				// 	box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
-				// 		'border-radius': radius+'px'
-				// 	});
-				// 	box_clone.find('img').css({left: -_ileft, top: -_itop});
-				// }
-				// else {
-					box_clone = this.getBoxCloneBackground({
-						image: 		image_old,
-						left: 		_ileft, 
-						top: 		_itop, 
-						width: 		size_box, 
-						height: 	size_box,
-						position: {
-							top:  	-_itop, 
-							left:  	-_ileft
-						}
-					}).css3({
-						'border-radius': radius+'px'
-					});
-				// }
-				
-				// var box_clone = this.getBoxCloneImgOld(image_old);
-				// box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
-				// 	'border-radius': radius+'px'
-				// });
-				// box_clone.find('img').css({left: -_ileft, top: -_itop});
+				box_clone = this.getBoxCloneBackground({
+					image: 		image_old,
+					left: 		_ileft, 
+					top: 		_itop, 
+					width: 		size_box, 
+					height: 	size_box,
+					position: {
+						top:  	-_itop, 
+						left:  	-_ileft
+					}
+				}).css3({
+					'border-radius': radius+'px'
+				});
 				
 				size_box -= 100;
 				
@@ -2110,28 +2079,11 @@
 				var _ftop = _itop; 
 				var box_clone = null;
 
-				if ($.browser.mozilla) {
-					box_clone = this.getBoxCloneImgOld(image_old);
-					box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
-						'border-radius': radius+'px'
-					});
-					box_clone.find('img').css({left: -_ileft, top: -_itop});
-				}
-				else {
-					box_clone = this.getBoxCloneBackground({
-						image: 		image_old,
-						left: 		_ileft, 
-						top: 		_itop, 
-						width: 		size_box, 
-						height: 	size_box,
-						position: {
-							top:  	-_itop, 
-							left:  	-_ileft
-						}
-					}).css3({
-						'border-radius': radius+'px'
-					});
-				}
+				box_clone = this.getBoxCloneImgOld(image_old);
+				box_clone.css({left: _ileft, top:_itop, width:size_box, height:size_box}).css3({
+					'border-radius': radius+'px'
+				});
+				box_clone.find('img').css({left: -_ileft, top: -_itop});
 				
 				size_box -= 100;
 				
@@ -2945,7 +2897,7 @@
 				
 				return false;
 			});
-			
+
 			$(document).on('click', '#overlay_skitter', function() {
 				if ( $(this).hasClass('finish_overlay_skitter') ) return false;
 				
